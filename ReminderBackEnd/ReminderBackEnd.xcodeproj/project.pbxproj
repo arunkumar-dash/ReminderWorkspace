@@ -40,6 +40,7 @@
 		1D4EFD8327D72822008742D0 /* ChangePassword.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4EFD6627D72822008742D0 /* ChangePassword.swift */; };
 		1D4EFD8427D72822008742D0 /* SetLastLoggedInUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4EFD6727D72822008742D0 /* SetLastLoggedInUser.swift */; };
 		1D4EFD8527D72822008742D0 /* DeleteReminder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4EFD6827D72822008742D0 /* DeleteReminder.swift */; };
+		1DAED53F27E1CD4700A11381 /* SQLite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DAED53E27E1CD4700A11381 /* SQLite.swift */; };
 		1DCBEFF027E1AA920096952C /* LoginDatabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DCBEFEF27E1AA920096952C /* LoginDatabaseService.swift */; };
 		1DCBEFF227E1AACE0096952C /* LoginDatabaseContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DCBEFF127E1AACE0096952C /* LoginDatabaseContract.swift */; };
 		1DCBEFF627E1AD4D0096952C /* LoginDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DCBEFF527E1AD4D0096952C /* LoginDataManager.swift */; };
@@ -87,6 +88,7 @@
 		1D4EFD6627D72822008742D0 /* ChangePassword.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChangePassword.swift; sourceTree = "<group>"; };
 		1D4EFD6727D72822008742D0 /* SetLastLoggedInUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetLastLoggedInUser.swift; sourceTree = "<group>"; };
 		1D4EFD6827D72822008742D0 /* DeleteReminder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeleteReminder.swift; sourceTree = "<group>"; };
+		1DAED53E27E1CD4700A11381 /* SQLite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLite.swift; sourceTree = "<group>"; };
 		1DCBEFEF27E1AA920096952C /* LoginDatabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginDatabaseService.swift; sourceTree = "<group>"; };
 		1DCBEFF127E1AACE0096952C /* LoginDatabaseContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginDatabaseContract.swift; sourceTree = "<group>"; };
 		1DCBEFF527E1AD4D0096952C /* LoginDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginDataManager.swift; sourceTree = "<group>"; };
@@ -151,6 +153,7 @@
 			children = (
 				1D4EFCB327D7272E008742D0 /* Constants.swift */,
 				1D4EFCB527D7272E008742D0 /* ReminderDatabase.swift */,
+				1DAED53E27E1CD4700A11381 /* SQLite.swift */,
 				1D4EFCB627D7272E008742D0 /* UserDatabase.swift */,
 				1D4EFCB927D7272E008742D0 /* Login */,
 				1DCBF00127E1BA590096952C /* ReminderDatabaseService.swift */,
@@ -362,6 +365,7 @@
 				1DCBEFFC27E1B3ED0096952C /* LastLoggedInUserDataManager.swift in Sources */,
 				1D4EFD7527D72822008742D0 /* WeekDay.swift in Sources */,
 				1D4EFD6E27D72822008742D0 /* SetLastLoggedInUserDataManagerContract.swift in Sources */,
+				1DAED53F27E1CD4700A11381 /* SQLite.swift in Sources */,
 				1D4EFD6B27D72822008742D0 /* DeleteReminderDataManagerContract.swift in Sources */,
 				1D4EFD7C27D72822008742D0 /* GetReminderList.swift in Sources */,
 				1DCD519927DA1EB4001E654C /* ZUseCase.swift in Sources */,
