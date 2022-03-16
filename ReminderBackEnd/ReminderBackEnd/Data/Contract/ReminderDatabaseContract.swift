@@ -6,3 +6,10 @@
 //
 
 import Foundation
+
+public protocol ReminderDatabaseContract {
+    func addReminder(username: String, reminder: Reminder, success: (Reminder) -> Void, failure: (String) -> Void)
+    func deleteReminder(username: String, reminder: Reminder, success: (Reminder) -> Void, failure: (String) -> Void)
+    func getReminderList(username: String, success: ([Reminder]) -> Void, failure: (String) -> Void)
+    func updateReminder(username: String, reminder: Reminder, success: (Reminder) -> Void, failure: (String) -> Void)
+}
