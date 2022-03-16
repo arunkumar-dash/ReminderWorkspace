@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol GetAllUsersDataManagerContract {
-    func getAllUsers(success: ([User]) -> Void, failure: (GetAllUsersError) -> Void)
+    func getAllUsers(success: @escaping ([User]) -> Void, failure: @escaping (GetAllUsersError) -> Void)
 }

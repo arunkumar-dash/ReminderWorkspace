@@ -21,10 +21,10 @@ public class AppLoginPresenter: AppLoginPresenterContract {
     
     func createUser(username: String, password: String, imageURL: URL?, onSuccess success: @escaping (String) -> Void, onFailure failure: @escaping (String) -> Void) {
         
-        let request = CreateUserRequest(username: username, password: password, imageURL: imageURL)
-        let database = CreateUserDatabaseService()
-        let dataManager = CreateUserDataManager(database: database)
+        let database = LoginDatabaseService()
+        let dataManager = LoginDataManager(database: database)
         createUser = CreateUser(dataManager: dataManager)
+        let request = CreateUserRequest(username: username, password: password, imageURL: imageURL)
         createUser?.execute(request: request, onSuccess: {
             (response) in
             success(response.username)
@@ -39,9 +39,8 @@ public class AppLoginPresenter: AppLoginPresenterContract {
     }
     
     func getAllUsers(onSuccess success: @escaping ([User]) -> Void, onFailure failure: @escaping (String) -> Void) {
-        let request = GetAllUsersRequest()
-        let database = GetAllUsersDatabaseService()
-        let dataManager = GetAllUsersDataManager(database: database)
+        let database = LoginDatabaseService()
+        let dataManager = LoginDataManager(database: database)
         getAllUsers = GetAllUsers(dataManager: dataManager)
         let success = {
             (response: GetAllUsersResponse) in
@@ -55,13 +54,13 @@ public class AppLoginPresenter: AppLoginPresenterContract {
                 failure("No Database Connection")
             }
         }
+        let request = GetAllUsersRequest()
         getAllUsers?.execute(request: request, onSuccess: success, onFailure: failure)
     }
     
     func getLastLoggedInUser(onSuccess success: @escaping (User) -> Void, onFailure failure: @escaping (String) -> Void) {
-        let request = GetLastLoggedInUserRequest()
-        let database = GetLastLoggedInUserDatabaseService()
-        let dataManager = GetLastLoggedInUserDataManager(database: database)
+        let database = LastLoggedInUserDatabaseService()
+        let dataManager = LastLoggedInUserDataManager(database: database)
         getLastLoggedInUser = GetLastLoggedInUser(dataManager: dataManager)
         let success = {
             (response: GetLastLoggedInUserResponse) in
@@ -75,11 +74,14 @@ public class AppLoginPresenter: AppLoginPresenterContract {
                 failure("No Database Connection")
             }
         }
+        let request = GetLastLoggedInUserRequest()
         getLastLoggedInUser?.execute(request: request, onSuccess: success, onFailure: failure)
     }
     
     func setLastLoggedInUser(user: User) {
-        let request = SetLastLoggedInUserRequest(user: user)
+        let database = LastLoggedInUserDatabaseService()
+        let dataManager = LastLoggedInUserDataManager(database: database)
+        setLastLoggedInUser = SetLastLoggedInUser(dataManager: dataManager)
         let success = {
             (response: SetLastLoggedInUserResponse) in
             print("Last logged in User: \(response.user.username)")
@@ -92,9 +94,7 @@ public class AppLoginPresenter: AppLoginPresenterContract {
                 print("No Database Connection")
             }
         }
-        let database = SetLastLoggedInUserDatabaseService()
-        let dataManager = SetLastLoggedInUserDataManager(database: database)
-        setLastLoggedInUser = SetLastLoggedInUser(dataManager: dataManager)
+        let request = SetLastLoggedInUserRequest(user: user)
         setLastLoggedInUser?.execute(request: request, onSuccess: success, onFailure: failure)
     }
 }

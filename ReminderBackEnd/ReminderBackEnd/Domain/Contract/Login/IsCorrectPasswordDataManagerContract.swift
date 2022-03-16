@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol IsCorrectPasswordDataManagerContract {
-    func isCorrectPassword(username: String, password: String, success: (String) -> Void, failure: (IsCorrectPasswordError) -> Void)
+    func isCorrectPassword(username: String, password: String, success: @escaping (String) -> Void, failure: @escaping (IsCorrectPasswordError) -> Void)
 }

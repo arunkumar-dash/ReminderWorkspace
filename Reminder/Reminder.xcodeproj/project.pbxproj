@@ -18,9 +18,9 @@
 		1D93291F27C4F21A00088E99 /* RegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D93291E27C4F21A00088E99 /* RegistrationView.swift */; };
 		1D93292127C4F2A100088E99 /* SwitchUserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D93292027C4F2A100088E99 /* SwitchUserView.swift */; };
 		1D93292327C4F33700088E99 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D93292227C4F33700088E99 /* LoginView.swift */; };
-		1D93293127C62B7400088E99 /* AppLoginPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D93293027C62B7400088E99 /* AppLoginPresenter.swift */; };
 		1D93293527C6313E00088E99 /* AppLoginViewControllerContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D93293427C6313E00088E99 /* AppLoginViewControllerContract.swift */; };
 		1D93294927C8FD8C00088E99 /* AppLoginPresenterContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D93294827C8FD8C00088E99 /* AppLoginPresenterContract.swift */; };
+		1DCBF00627E1BF0E0096952C /* AppLoginPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DCBF00527E1BF0E0096952C /* AppLoginPresenter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -50,9 +50,9 @@
 		1D93291E27C4F21A00088E99 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationView.swift; sourceTree = "<group>"; };
 		1D93292027C4F2A100088E99 /* SwitchUserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchUserView.swift; sourceTree = "<group>"; };
 		1D93292227C4F33700088E99 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
-		1D93293027C62B7400088E99 /* AppLoginPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoginPresenter.swift; sourceTree = "<group>"; };
 		1D93293427C6313E00088E99 /* AppLoginViewControllerContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoginViewControllerContract.swift; sourceTree = "<group>"; };
 		1D93294827C8FD8C00088E99 /* AppLoginPresenterContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoginPresenterContract.swift; sourceTree = "<group>"; };
+		1DCBF00527E1BF0E0096952C /* AppLoginPresenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppLoginPresenter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,7 +137,7 @@
 		1D93293227C62B8F00088E99 /* Presenter */ = {
 			isa = PBXGroup;
 			children = (
-				1D93293027C62B7400088E99 /* AppLoginPresenter.swift */,
+				1DCBF00527E1BF0E0096952C /* AppLoginPresenter.swift */,
 			);
 			path = Presenter;
 			sourceTree = "<group>";
@@ -223,12 +223,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1DCBF00627E1BF0E0096952C /* AppLoginPresenter.swift in Sources */,
 				1D93292127C4F2A100088E99 /* SwitchUserView.swift in Sources */,
 				1D4EF9EE27CE55FA008742D0 /* AppLoginViewContract.swift in Sources */,
 				1D93294927C8FD8C00088E99 /* AppLoginPresenterContract.swift in Sources */,
 				1D93291F27C4F21A00088E99 /* RegistrationView.swift in Sources */,
 				1D93291D27C4F17B00088E99 /* WelcomeView.swift in Sources */,
-				1D93293127C62B7400088E99 /* AppLoginPresenter.swift in Sources */,
 				1D648A2927BF7FA700A6AC58 /* AppLoginViewController.swift in Sources */,
 				1D93292327C4F33700088E99 /* LoginView.swift in Sources */,
 				1D93293527C6313E00088E99 /* AppLoginViewControllerContract.swift in Sources */,

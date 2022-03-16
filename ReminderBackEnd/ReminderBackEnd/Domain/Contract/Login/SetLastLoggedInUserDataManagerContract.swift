@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol SetLastLoggedInUserDataManagerContract {
-    func setLastLoggedInUser(user: User, success: (User) -> Void, failure: (SetLastLoggedInUserError) -> Void)
+    func setLastLoggedInUser(user: User, success: @escaping (User) -> Void, failure: @escaping (SetLastLoggedInUserError) -> Void)
 }

@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol GetReminderListDataManagerContract {
-    func getReminderList(username: String, success: ([Reminder]) -> Void, failure: (GetReminderListError) -> Void)
+    func getReminderList(username: String, success: @escaping ([Reminder]) -> Void, failure: @escaping (GetReminderListError) -> Void)
 }

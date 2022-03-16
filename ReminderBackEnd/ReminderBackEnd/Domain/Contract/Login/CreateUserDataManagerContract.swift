@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol CreateUserDataManagerContract {
-    func createUser(username: String, password: String, imageURL: URL?, success: (String) -> Void, failure: (CreateUserError) -> Void)
+    func createUser(username: String, password: String, imageURL: URL?, success: @escaping (String) -> Void, failure: @escaping (CreateUserError) -> Void)
 }
