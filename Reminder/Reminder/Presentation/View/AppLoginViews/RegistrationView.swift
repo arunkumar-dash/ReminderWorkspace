@@ -23,6 +23,9 @@ class RegistrationView: NSView, AppLoginViewContract {
     private var usernameStringValue = ""
     private var passwordStringValue = ""
     
+    deinit {
+        print("registration view deinit")
+    }
     
     func load(_ viewController: NSViewController) {
         

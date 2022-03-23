@@ -37,6 +37,7 @@ extension SQLiteError: LocalizedError {
 
 /// A wrapper over the SQLite3 framework
 class SQLite {
+    private static var sqliteSemaphore = false
     /// The C pointer which is used to perform all database operations
     private let dbPointer: OpaquePointer?
     private static let noErrorMessage = "No error message provided from sqlite."
@@ -52,6 +53,13 @@ class SQLite {
     /// - Parameter path: The absolute path of the file with .sqlite extension
     /// - Returns: An SQLite instance initiated with the database
     static func connect(path: String) throws -> SQLite {
+        while Self.sqliteSemaphore {
+            
+        }
+        Self.sqliteSemaphore = true
+        defer { Self.sqliteSemaphore = false }
+        
+        
         var db: OpaquePointer?
         /// Opening the connection to database, `SQLITE_OK` is a success code
         if sqlite3_open(path, &db) == SQLITE_OK {
@@ -91,6 +99,15 @@ extension SQLite {
     /// - Throws:
     ///  - preparationError: When `sqlite3_prepare_v2()` returns a constant other than `SQLITE_OK`
     func prepareStatement(sql: String) throws -> OpaquePointer? {
+        
+        while Self.sqliteSemaphore {
+            
+        }
+        Self.sqliteSemaphore = true
+        defer { Self.sqliteSemaphore = false }
+            
+            
+        
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(dbPointer, sql, -1, &statement, nil) == SQLITE_OK else {
             throw SQLiteError.preparationError(message: errorMessage)
@@ -104,9 +121,18 @@ extension SQLite {
     /// - Parameter createStatement: The SQL command to create the table
     func createTable(createStatement: String) throws {
         
+        while Self.sqliteSemaphore {
+            
+        }
+        Self.sqliteSemaphore = true
+        defer { Self.sqliteSemaphore = false }
+            
+            
         do {
 
+            Self.sqliteSemaphore = false
             let createTableStatement = try prepareStatement(sql: createStatement)
+            Self.sqliteSemaphore = true
             
             defer {
                 sqlite3_finalize(createTableStatement)
@@ -119,5 +145,68 @@ extension SQLite {
             let errorMessage = error.localizedDescription
             throw SQLiteError.tableCreationFailure(message: errorMessage)
         }
+    }
+}
+
+extension SQLite {
+    func finalize(_ sql: OpaquePointer?) {
+        while Self.sqliteSemaphore {
+            
+        }
+        Self.sqliteSemaphore = true
+        defer { Self.sqliteSemaphore = false }
+            
+           
+        sqlite3_finalize(sql)
+    }
+}
+
+extension SQLite {
+    func bindInt(_ sql: OpaquePointer?, _ index: Int32, _ value: Int32) -> Bool {
+        while Self.sqliteSemaphore {
+            
+        }
+        Self.sqliteSemaphore = true
+        defer { Self.sqliteSemaphore = false }
+            
+           
+        return sqlite3_bind_int(sql, index, value) == SQLITE_OK
+    }
+    
+    func bindText(_ sql: OpaquePointer?, _ index: Int32, _ string: UnsafePointer<CChar>?) -> Bool {
+        while Self.sqliteSemaphore {
+            
+        }
+        Self.sqliteSemaphore = true
+        defer { Self.sqliteSemaphore = false }
+            
+           
+        return sqlite3_bind_text(sql, index, string, -1, nil) == SQLITE_OK
+    }
+}
+
+extension SQLite {
+    func step(_ sql: OpaquePointer?) -> Int32 {
+        while Self.sqliteSemaphore {
+            
+        }
+        Self.sqliteSemaphore = true
+        defer { Self.sqliteSemaphore = false }
+            
+           
+        return sqlite3_step(sql)
+    }
+}
+
+extension SQLite {
+    func columnText(_ sql: OpaquePointer?, _ index: Int32) -> UnsafePointer<UInt8>? {
+        while Self.sqliteSemaphore {
+            
+        }
+        Self.sqliteSemaphore = true
+        defer { Self.sqliteSemaphore = false }
+            
+           
+        return sqlite3_column_text(sql, index)
     }
 }

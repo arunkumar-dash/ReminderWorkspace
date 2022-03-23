@@ -12,14 +12,18 @@ import ReminderBackEnd
 class AppLoginViewController: NSViewController, AppLoginViewControllerContract {
     private var currentView: AppLoginViewContract? = nil
     private var previousViews: [AppLoginViewContract] = []
-    private let welcomeView = WelcomeView()
-    private let registrationView = RegistrationView()
-    private let switchUserView = SwitchUserView()
-    private let loginView = LoginView()
-    var appLoginPresenter: AppLoginPresenterContract?
+    var appLoginPresenter: AppLoginPresenterContract
+
     
-    deinit {
+    init(appLoginPresenter: AppLoginPresenterContract) {
+        self.appLoginPresenter = appLoginPresenter
+        super.init(nibName: nil, bundle: nil)
     }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     
     private enum Views {
         case welcomeView
@@ -28,24 +32,25 @@ class AppLoginViewController: NSViewController, AppLoginViewControllerContract {
         case loginView
     }
     
+    deinit {
+        print("applogin vc deinit")
+    }
     
     override func viewDidLoad() {
-        print("view loaded")
-        
-        view.wantsLayer = true
-        view.layer?.contents = NSImage(named: "background")
+        print("app login view loaded")
     }
     
     override func loadView() {
         
         view = NSView() // view will be empty until it decides what view after fetching from db
-        appLoginPresenter = AppLoginPresenter()
+        view.wantsLayer = true
+        view.layer?.contents = NSImage(named: "background")
         
         
         let success: (User) -> Void = {
             [weak self]
             (user) in
-            self?.currentView = self?.loginView
+            self?.currentView = LoginView()
             
             guard let currentView = self?.currentView else {
                 return
@@ -72,7 +77,7 @@ class AppLoginViewController: NSViewController, AppLoginViewControllerContract {
             [weak self]
             (message) in
             print(message)
-            self?.currentView = self?.welcomeView
+            self?.currentView = WelcomeView()
             
             guard let currentView = self?.currentView else {
                 return
@@ -115,16 +120,16 @@ class AppLoginViewController: NSViewController, AppLoginViewControllerContract {
         
         switch(selectedView) {
         case .welcomeView:
-            currentView = welcomeView
+            currentView = WelcomeView()
             
         case .registrationView:
-            currentView = registrationView
+            currentView = RegistrationView()
             
         case .switchUserView:
-            currentView = switchUserView
+            currentView = SwitchUserView()
             
         case .loginView:
-            currentView = loginView
+            currentView = LoginView()
         }
         
         guard let currentView = currentView else {
@@ -150,7 +155,9 @@ class AppLoginViewController: NSViewController, AppLoginViewControllerContract {
     
     func navigateBackToPreviousView() {
         currentView?.removeFromSuperview()
-        currentView = previousViews.popLast()
+        if let lastView = previousViews.popLast() {
+            currentView = lastView
+        }
         guard let currentView = currentView else {
             return
         }
@@ -177,8 +184,16 @@ class AppLoginViewController: NSViewController, AppLoginViewControllerContract {
         self.changeView(to: .loginView)
     }
     
+    func changeViewToDashboard() {
+        appLoginPresenter.changeViewToDashboard()
+    }
     
     func createUser(_ sender: RegistrationView) {
+        guard let registrationView = currentView as? RegistrationView else {
+            print("registration view is nil")
+            return
+        }
+
         let username = registrationView.usernameTextBox.stringValue
         let password = registrationView.passwordTextBox.stringValue
         let imageURL = registrationView.userImageURL
@@ -206,20 +221,24 @@ class AppLoginViewController: NSViewController, AppLoginViewControllerContract {
             sender.responseLabel.isHidden = false
         }
 
-        appLoginPresenter?.createUser(username: username, password: password, imageURL: imageURL, onSuccess: success, onFailure: failure)
+        appLoginPresenter.createUser(username: username, password: password, imageURL: imageURL, onSuccess: success, onFailure: failure)
         
     }
     
     func getAllUsers(success: @escaping ([User]) -> Void, failure: @escaping (String) -> Void) {
-        appLoginPresenter?.getAllUsers(onSuccess: success, onFailure: failure)
+        appLoginPresenter.getAllUsers(onSuccess: success, onFailure: failure)
     }
     
     func getLastLoggedInUser(success: @escaping (User) -> Void, failure: @escaping (String) -> Void) {
-        appLoginPresenter?.getLastLoggedInUser(onSuccess: success, onFailure: failure)
+        appLoginPresenter.getLastLoggedInUser(onSuccess: success, onFailure: failure)
     }
     
     func setLastLoggedInUser(_ user: User) {
-        appLoginPresenter?.setLastLoggedInUser(user: user)
+        appLoginPresenter.setLastLoggedInUser(user: user)
+    }
+    
+    override func viewWillDisappear() {
+        previousViews.removeAll()
     }
 }
 

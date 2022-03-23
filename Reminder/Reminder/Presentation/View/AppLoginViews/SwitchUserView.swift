@@ -17,6 +17,11 @@ class SwitchUserView: NSView, AppLoginViewContract {
     private var parentViewController: AppLoginViewControllerContract?
     private var containerScrollView = NSScrollView()
     
+    
+    deinit {
+        print("switchuser view deinit")
+    }
+    
     func load(_ viewController: NSViewController) {
         
         guard let parentViewController = viewController as? AppLoginViewControllerContract else {
@@ -95,7 +100,7 @@ class SwitchUserView: NSView, AppLoginViewContract {
         for user in users {
             let userView = GetViewForUser(user: user).getView()
             
-            let mouseClickGesture = NSClickGestureRecognizer(target: self, action: #selector(SwitchUserView.changeLastLoggedInUser(_:)))
+            let mouseClickGesture = NSClickGestureRecognizer(target: self, action: #selector(changeLastLoggedInUser(_:)))
             userView.addGestureRecognizer(mouseClickGesture)
             
             userStackView.addArrangedSubview(userView)

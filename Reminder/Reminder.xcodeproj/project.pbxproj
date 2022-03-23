@@ -20,13 +20,23 @@
 		1D93292327C4F33700088E99 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D93292227C4F33700088E99 /* LoginView.swift */; };
 		1D93293527C6313E00088E99 /* AppLoginViewControllerContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D93293427C6313E00088E99 /* AppLoginViewControllerContract.swift */; };
 		1D93294927C8FD8C00088E99 /* AppLoginPresenterContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D93294827C8FD8C00088E99 /* AppLoginPresenterContract.swift */; };
+		1DA3B09127E8581700E2A63F /* ReminderRouterContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA3B09027E8581700E2A63F /* ReminderRouterContract.swift */; };
+		1DA9145C27E31B23004AD5D5 /* DashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA9145B27E31B23004AD5D5 /* DashboardViewController.swift */; };
+		1DA9145E27E31BC4004AD5D5 /* CreateReminderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA9145D27E31BC4004AD5D5 /* CreateReminderView.swift */; };
+		1DA9146127E31C27004AD5D5 /* EditReminderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA9146027E31C27004AD5D5 /* EditReminderView.swift */; };
+		1DA9146327E31C46004AD5D5 /* CreateEditReminderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA9146227E31C46004AD5D5 /* CreateEditReminderView.swift */; };
+		1DA9146527E31D46004AD5D5 /* DashboardPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA9146427E31D46004AD5D5 /* DashboardPresenter.swift */; };
+		1DA9146727E31D66004AD5D5 /* DashboardPresenterContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA9146627E31D66004AD5D5 /* DashboardPresenterContract.swift */; };
+		1DA9146927E31D7D004AD5D5 /* DashboardViewContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA9146827E31D7D004AD5D5 /* DashboardViewContract.swift */; };
+		1DA9146B27E31D90004AD5D5 /* DashboardViewControllerContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA9146A27E31D90004AD5D5 /* DashboardViewControllerContract.swift */; };
+		1DA9146D27E336B3004AD5D5 /* ReminderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA9146C27E336B3004AD5D5 /* ReminderListView.swift */; };
 		1DCBF00627E1BF0E0096952C /* AppLoginPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DCBF00527E1BF0E0096952C /* AppLoginPresenter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		1DCD519D27DAF21A001E654C /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
@@ -52,6 +62,16 @@
 		1D93292227C4F33700088E99 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		1D93293427C6313E00088E99 /* AppLoginViewControllerContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoginViewControllerContract.swift; sourceTree = "<group>"; };
 		1D93294827C8FD8C00088E99 /* AppLoginPresenterContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLoginPresenterContract.swift; sourceTree = "<group>"; };
+		1DA3B09027E8581700E2A63F /* ReminderRouterContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderRouterContract.swift; sourceTree = "<group>"; };
+		1DA9145B27E31B23004AD5D5 /* DashboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewController.swift; sourceTree = "<group>"; };
+		1DA9145D27E31BC4004AD5D5 /* CreateReminderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateReminderView.swift; sourceTree = "<group>"; };
+		1DA9146027E31C27004AD5D5 /* EditReminderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditReminderView.swift; sourceTree = "<group>"; };
+		1DA9146227E31C46004AD5D5 /* CreateEditReminderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateEditReminderView.swift; sourceTree = "<group>"; };
+		1DA9146427E31D46004AD5D5 /* DashboardPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardPresenter.swift; sourceTree = "<group>"; };
+		1DA9146627E31D66004AD5D5 /* DashboardPresenterContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardPresenterContract.swift; sourceTree = "<group>"; };
+		1DA9146827E31D7D004AD5D5 /* DashboardViewContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewContract.swift; sourceTree = "<group>"; };
+		1DA9146A27E31D90004AD5D5 /* DashboardViewControllerContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewControllerContract.swift; sourceTree = "<group>"; };
+		1DA9146C27E336B3004AD5D5 /* ReminderListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderListView.swift; sourceTree = "<group>"; };
 		1DCBF00527E1BF0E0096952C /* AppLoginPresenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppLoginPresenter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -120,6 +140,8 @@
 			children = (
 				1D648A2827BF7FA700A6AC58 /* AppLoginViewController.swift */,
 				1D93292C27C6157500088E99 /* AppLoginViews */,
+				1DA9145B27E31B23004AD5D5 /* DashboardViewController.swift */,
+				1DA9145F27E31C0C004AD5D5 /* DashboardViews */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -138,6 +160,7 @@
 			isa = PBXGroup;
 			children = (
 				1DCBF00527E1BF0E0096952C /* AppLoginPresenter.swift */,
+				1DA9146427E31D46004AD5D5 /* DashboardPresenter.swift */,
 			);
 			path = Presenter;
 			sourceTree = "<group>";
@@ -148,8 +171,23 @@
 				1D93293427C6313E00088E99 /* AppLoginViewControllerContract.swift */,
 				1D93294827C8FD8C00088E99 /* AppLoginPresenterContract.swift */,
 				1D4EF9ED27CE55FA008742D0 /* AppLoginViewContract.swift */,
+				1DA9146627E31D66004AD5D5 /* DashboardPresenterContract.swift */,
+				1DA9146827E31D7D004AD5D5 /* DashboardViewContract.swift */,
+				1DA9146A27E31D90004AD5D5 /* DashboardViewControllerContract.swift */,
+				1DA3B09027E8581700E2A63F /* ReminderRouterContract.swift */,
 			);
 			path = Contract;
+			sourceTree = "<group>";
+		};
+		1DA9145F27E31C0C004AD5D5 /* DashboardViews */ = {
+			isa = PBXGroup;
+			children = (
+				1DA9145D27E31BC4004AD5D5 /* CreateReminderView.swift */,
+				1DA9146027E31C27004AD5D5 /* EditReminderView.swift */,
+				1DA9146227E31C46004AD5D5 /* CreateEditReminderView.swift */,
+				1DA9146C27E336B3004AD5D5 /* ReminderListView.swift */,
+			);
+			path = DashboardViews;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -223,14 +261,24 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1DA9145E27E31BC4004AD5D5 /* CreateReminderView.swift in Sources */,
 				1DCBF00627E1BF0E0096952C /* AppLoginPresenter.swift in Sources */,
 				1D93292127C4F2A100088E99 /* SwitchUserView.swift in Sources */,
+				1DA9146927E31D7D004AD5D5 /* DashboardViewContract.swift in Sources */,
 				1D4EF9EE27CE55FA008742D0 /* AppLoginViewContract.swift in Sources */,
 				1D93294927C8FD8C00088E99 /* AppLoginPresenterContract.swift in Sources */,
+				1DA3B09127E8581700E2A63F /* ReminderRouterContract.swift in Sources */,
 				1D93291F27C4F21A00088E99 /* RegistrationView.swift in Sources */,
 				1D93291D27C4F17B00088E99 /* WelcomeView.swift in Sources */,
 				1D648A2927BF7FA700A6AC58 /* AppLoginViewController.swift in Sources */,
+				1DA9146727E31D66004AD5D5 /* DashboardPresenterContract.swift in Sources */,
+				1DA9146327E31C46004AD5D5 /* CreateEditReminderView.swift in Sources */,
 				1D93292327C4F33700088E99 /* LoginView.swift in Sources */,
+				1DA9146D27E336B3004AD5D5 /* ReminderListView.swift in Sources */,
+				1DA9146127E31C27004AD5D5 /* EditReminderView.swift in Sources */,
+				1DA9146527E31D46004AD5D5 /* DashboardPresenter.swift in Sources */,
+				1DA9145C27E31B23004AD5D5 /* DashboardViewController.swift in Sources */,
+				1DA9146B27E31D90004AD5D5 /* DashboardViewControllerContract.swift in Sources */,
 				1D93293527C6313E00088E99 /* AppLoginViewControllerContract.swift in Sources */,
 				1D648A1027BF6A0B00A6AC58 /* AppDelegate.swift in Sources */,
 			);
@@ -368,20 +416,22 @@
 		1D648A1A27BF6A0E00A6AC58 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Reminder/Reminder.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = XSQT2B26VT;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Reminder/ReminderBackEnd",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = MainMenu;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
@@ -401,20 +451,22 @@
 		1D648A1B27BF6A0E00A6AC58 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Reminder/Reminder.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = XSQT2B26VT;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Reminder/ReminderBackEnd",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainNibFile = MainMenu;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;

@@ -33,56 +33,101 @@ public class ReminderDefaults: Defaults {
     /// Default title for Reminder
     static var title: String {
         get {
-            let constants = Constants()
-            return "\(constants.REMINDER_TITLE)-\(Date.now.description(with: Locale.current))"
+            let database = ReminderDatabase.shared
+            let title: String
+            if let user = database.getLastLoggedInUser() {
+                if let reminderTitle = database.getUserConstant(for: user.username, key: "reminderTitle") {
+                    title = reminderTitle
+                    return "\(title)-\(Date.now.description(with: Locale.current))"
+                }
+            }
+            title = "Untitled"
+            return "\(title)-\(Date.now.description(with: Locale.current))"
         }
         set {
-            var constants = Constants()
-            constants.REMINDER_TITLE = newValue
+            let database = ReminderDatabase.shared
+            if let user = database.getLastLoggedInUser() {
+                if database.updateUserConstant(for: user.username, key: "reminderTitle", value: newValue) == false {
+                    print("Cannot set default reminder title")
+                }
+            }
         }
     }
     
     /// Default description for Reminder
     static var description: String {
         get {
-            let constants = Constants()
-            return constants.REMINDER_DESCRIPTION
+            let database = ReminderDatabase.shared
+            let description: String
+            if let user = database.getLastLoggedInUser() {
+                if let reminderDescription = database.getUserConstant(for: user.username, key: "reminderDescription") {
+                    description = reminderDescription
+                    return "\(description)-\(Date.now.description(with: Locale.current))"
+                }
+            }
+            description = "Description"
+            return description
         }
         set {
-            var constants = Constants()
-            constants.REMINDER_DESCRIPTION = newValue
+            let database = ReminderDatabase.shared
+            if let user = database.getLastLoggedInUser() {
+                if database.updateUserConstant(for: user.username, key: "reminderDescription", value: newValue) == false {
+                    print("Cannot set default reminder description")
+                }
+            }
         }
     }
     
     /// Default time when the Reminder rings
     /// Default time set here is one hour(3600 seconds) after the time when Reminder was added
     static var eventTime: Date {
-        let constants = Constants()
-        return Date.now + constants.REMINDER_EVENT_TIME.rawValue
-    }
-    
-    /// Default ringing sound of the Reminder
-    static var sound: String {
-        get {
-            let constants = Constants()
-            return constants.REMINDER_SOUND_PATH
+        let database = ReminderDatabase.shared
+        let timeInterval: TimeInterval
+        if let user = database.getLastLoggedInUser() {
+            if let timeIntervalString = database.getUserConstant(for: user.username, key: "reminderTimeInterval") {
+                if let timeInterval = Double(timeIntervalString) {
+                    return Date.now + timeInterval
+                }
+            }
         }
-        set {
-            var constants = Constants()
-            constants.REMINDER_SOUND_PATH = newValue
-        }
+        timeInterval = 3600
+        return Date.now + timeInterval
     }
     
     /// Pattern when the Reminder repeats
     /// Default pattern is no repetitions
     static var repeatTiming: RepeatPattern {
         get {
-            let constants = Constants()
-            return constants.REMINDER_REPEAT_PATTERN
+            let database = ReminderDatabase.shared
+            if let user = database.getLastLoggedInUser() {
+                if let repeatPatternString = database.getUserConstant(for: user.username, key: "reminderRepeatPattern") {
+                    switch (repeatPatternString) {
+                    case "never":
+                        return .never
+                    case "everyMinute":
+                        return .everyMinute
+                    case "everyDay":
+                        return .everyDay
+                    case "everyWeek":
+                        return .everyWeek
+                    case "everyMonth":
+                        return .everyWeek
+                    case "everyYear":
+                        return .everyYear
+                    default:
+                        return .never
+                    }
+                }
+            }
+            return .never
         }
         set {
-            var constants = Constants()
-            constants.REMINDER_REPEAT_PATTERN = newValue
+            let database = ReminderDatabase.shared
+            if let user = database.getLastLoggedInUser() {
+                if database.updateUserConstant(for: user.username, key: "reminderRepeatPattern", value: "\(newValue)") == false {
+                    print("Cannot set default reminder repeatTiming")
+                }
+            }
         }
     }
     
@@ -90,12 +135,32 @@ public class ReminderDefaults: Defaults {
     /// By default the reminder rings 30 minutes before the `eventTime`
     static var ringTimeIntervals: Set<TimeInterval> {
         get {
-            let constants = Constants()
-            return constants.REMINDER_RING_TIME_INTERVALS
+            let database = ReminderDatabase.shared
+            if let user = database.getLastLoggedInUser() {
+                if let ringTimeIntervalsString = database.getUserConstant(for: user.username, key: "reminderRingTimeIntervals") {
+                    let ringTimeIntervals = ringTimeIntervalsString.split(separator: ",").map({Double($0)})
+                    var timeIntervals: Set<Double> = []
+                    for ringTimeInterval in ringTimeIntervals {
+                        if let ringTimeInterval = ringTimeInterval {
+                            timeIntervals.insert(ringTimeInterval)
+                        }
+                    }
+                    return timeIntervals
+                }
+            }
+            return Set([3600])
         }
         set {
-            var constants = Constants()
-            constants.REMINDER_RING_TIME_INTERVALS = newValue
+            var ringTimeIntervalsString = ""
+            for interval in newValue {
+                ringTimeIntervalsString += String(interval) + ","
+            }
+            let database = ReminderDatabase.shared
+            if let user = database.getLastLoggedInUser() {
+                if database.updateUserConstant(for: user.username, key: "reminderRingTimeIntervals", value: ringTimeIntervalsString) == false {
+                    print("Cannot set default reminder ringTimeIntervals")
+                }
+            }
         }
     }
 //    let reminderView = ReminderView(self)
@@ -129,7 +194,7 @@ public class ReminderDefaults: Defaults {
     }
     
     static func setValue(sound: String?) -> String {
-        return sound ?? Self.sound
+        return sound ?? ""
     }
     
     static func setValue(repeatTiming: RepeatPattern?) -> RepeatPattern {
