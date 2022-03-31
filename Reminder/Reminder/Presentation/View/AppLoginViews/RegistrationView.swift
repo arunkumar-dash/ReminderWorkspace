@@ -21,7 +21,6 @@ class RegistrationView: NSView, AppLoginViewContract {
     private let navigateBackButton = NSImageView(image: NSImage(named: "left_arrow")!)
     private var parentViewController: AppLoginViewControllerContract?
     private var usernameStringValue = ""
-    private var passwordStringValue = ""
     
     deinit {
         print("registration view deinit")
@@ -63,7 +62,6 @@ class RegistrationView: NSView, AppLoginViewContract {
         userImageView = NSImageView(image: NSImage(named: "user_icon")!)
         responseLabel = NSTextField(labelWithString: "")
         usernameStringValue = ""
-        passwordStringValue = ""
     }
     
     private func configureUserImageView() {
@@ -73,7 +71,7 @@ class RegistrationView: NSView, AppLoginViewContract {
         userImageView.imageScaling = NSImageScaling.scaleAxesIndependently
         
         /// adding points manually as `userImageView.frame` is set after constraints are set
-        addTrackingArea(NSTrackingArea(rect: NSRect(origin: CGPoint(x: 200, y: 370), size: CGSize(width: 200, height: 200)), options: [.mouseEnteredAndExited, .mouseMoved, .activeInActiveApp], owner: self))
+        addTrackingArea(NSTrackingArea(rect: NSRect(origin: CGPoint(x: 200, y: 370), size: CGSize(width: 200, height: 200)), options: [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow], owner: self))
     
         let mouseClickToAddImageInUserImage = NSClickGestureRecognizer(target: self, action: #selector(getUserImage))
         userImageView.addGestureRecognizer(mouseClickToAddImageInUserImage)
@@ -217,14 +215,12 @@ class RegistrationView: NSView, AppLoginViewContract {
         if (event.keyCode == RETURN_KEY_CODE) && (usernameTextBox.stringValue != usernameStringValue) {
             usernameStringValue = usernameTextBox.stringValue
             self.passwordTextBox.setAccessibilityFocused(true)
-        } else if (event.keyCode == RETURN_KEY_CODE) && (passwordTextBox.stringValue != passwordStringValue) {
-            passwordStringValue = passwordTextBox.stringValue
+        } else if (event.keyCode == RETURN_KEY_CODE) {
             createUser()
-        } else if (event.keyCode == TAB_KEY_CODE) && (usernameTextBox.stringValue != usernameStringValue) {
+        } else if (event.keyCode == TAB_KEY_CODE) && (usernameTextBox.abortEditing()) {
             usernameStringValue = usernameTextBox.stringValue
             self.passwordTextBox.setAccessibilityFocused(true)
-        } else if (event.keyCode == TAB_KEY_CODE) && (passwordTextBox.stringValue != passwordStringValue) {
-            passwordStringValue = passwordTextBox.stringValue
+        } else if (event.keyCode == TAB_KEY_CODE) && (passwordTextBox.abortEditing()) {
             self.usernameTextBox.setAccessibilityFocused(true)
         }
     }

@@ -46,11 +46,11 @@ class DashboardPresenter: DashboardPresenterContract {
         router?.changeViewControllerToLogin()
     }
     
-    func addReminder(title: String, description: String, date: Date, success: @escaping () -> Void, failure: @escaping (String) -> Void) {
+    func addReminder(title: String, description: String, date: Date, repeatPattern: RepeatPattern, success: @escaping () -> Void, failure: @escaping (String) -> Void) {
         let addReminderSuccess: (String) -> Void = {
             [weak self]
             (username: String) in
-            self?.getUsernameSuccess(username: username, title: title, description: description, date: date, success: success, failure: failure)
+            self?.getUsernameSuccess(username: username, title: title, description: description, date: date, repeatPattern: repeatPattern, success: success, failure: failure)
         }
         let addReminderFailure: (String) -> Void = {
             (message: String)
@@ -61,9 +61,9 @@ class DashboardPresenter: DashboardPresenterContract {
         getLastLoggedInUserUsername(success: addReminderSuccess, failure: addReminderFailure)
     }
     
-    private func getUsernameSuccess(username: String, title: String, description: String, date: Date, success: @escaping () -> Void, failure: @escaping (String) -> Void) {
+    private func getUsernameSuccess(username: String, title: String, description: String, date: Date, repeatPattern: RepeatPattern, success: @escaping () -> Void, failure: @escaping (String) -> Void) {
         self.addReminderUseCase = AddReminder(dataManager: self.reminderDataManager)
-        let reminder = Reminder(addedTime: Date.now, title: title, description: description, eventTime: date)
+        let reminder = Reminder(addedTime: Date.now, title: title, description: description, eventTime: date, repeatTiming: repeatPattern)
         let request = AddReminderRequest(username: username, reminder: reminder)
         let success = {
             (response: AddReminderResponse)

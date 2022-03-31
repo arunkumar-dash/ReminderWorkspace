@@ -7,10 +7,13 @@
 
 import Foundation
 import AppKit
+import ReminderBackEnd
 
 class DashboardViewController: NSViewController, DashboardViewControllerContract {
+    
     private var createReminderView: CreateReminderView = CreateReminderView()
     private var reminderListView: ReminderListView = ReminderListView()
+    private var editReminderView: EditReminderView = EditReminderView()
     var dashboardPresenter: DashboardPresenterContract
     
     override func viewDidLoad() {
@@ -44,6 +47,7 @@ class DashboardViewController: NSViewController, DashboardViewControllerContract
         splitView.isVertical = true
         
         splitView.addArrangedSubview(reminderListView)
+//        splitView.addArrangedSubview(NSView())
         reminderListView.load(self)
         splitView.addArrangedSubview(createReminderView)
         createReminderView.load(self)
@@ -57,7 +61,21 @@ class DashboardViewController: NSViewController, DashboardViewControllerContract
         dashboardPresenter.changeViewControllerToLogin()
     }
     
-    func addReminder(title: String, description: String, date: Date, success: @escaping () -> Void, failure: @escaping (String) -> Void) {
-        dashboardPresenter.addReminder(title: title, description: description, date: date, success: success, failure: failure)
+    func addReminder(title: String, description: String, date: Date, repeatPattern: RepeatPattern, success: @escaping () -> Void, failure: @escaping (String) -> Void) {
+        // refresh data source of table view
+        dashboardPresenter.addReminder(title: title, description: description, date: date, repeatPattern: repeatPattern, success: success, failure: failure)
+        reminderListView.addReminder(reminder: Reminder(addedTime: Date.now, title: title, description: description, eventTime: date, repeatTiming: repeatPattern))
+    }
+    
+    func changeViewToEditReminder(reminder: Reminder, success: @escaping (Reminder) -> Void, failure: @escaping (String) -> Void) {
+        // get 2 parameters(reminder, callback)
+        // get a callback which should execute the reloadData of index of the reminder which is sent here
+        // update the editReminderView with reminder values got through parameter
+        // after setting, execute reminder callback there when save is clicked
+//        editReminderView.load(self, reminder: reminder, success: success, failure: failure)
+        // add definition in EditReminderView and set callback in save button action
+        // change callback to reset to create reminder view 
+//        (view as? NSSplitView)?.arrangedSubviews[1].removeFromSuperview()
+//        (view as? NSSplitView)?.addArrangedSubview(editReminderView)
     }
 }

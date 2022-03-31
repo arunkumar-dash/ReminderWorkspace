@@ -7,16 +7,19 @@
 
 import Foundation
 import AppKit
+import ReminderBackEnd
 
 class CreateReminderView: NSView, NSTextViewDelegate {
     private var profilePhotoView: NSImageView = NSImageView(image: NSImage(named: "user_icon")!)
     private var datePickerButton: NSView = NSView()
     private var popOverDatePicker: NSPopover = NSPopover()
-    // internal access control because it is modified in edit reminder view
-    var titleTextBox: NSTextField = NSTextField()
-    var datePicker: NSDatePicker = NSDatePicker()
-    var descriptionTextBox: NSScrollView = NSScrollView()
-    var responseLabel: NSTextField = NSTextField()
+    private var titleTextBox: NSTextField = NSTextField()
+    private var datePicker: NSDatePicker = NSDatePicker()
+    private var descriptionTextBox: NSScrollView = NSScrollView()
+    private var repeatPatternView = NSView()
+    private let repeatPatternButton = NSPopUpButton()
+    private var repeatPatternValue: RepeatPattern = .never
+    private var responseLabel: NSTextField = NSTextField()
     private var cancelButton: NSView = NSView()
     private var saveButton: NSView = NSView()
     private var dashboardViewController: DashboardViewControllerContract?
@@ -33,12 +36,8 @@ class CreateReminderView: NSView, NSTextViewDelegate {
         
         self.dashboardViewController = dashboardViewController
         load()
-        wantsLayer = true
-        layer?.backgroundColor = .init(red: 1, green: 1, blue: 1, alpha: 0.25)
-        translatesAutoresizingMaskIntoConstraints = false
-        heightAnchor.constraint(greaterThanOrEqualToConstant: 260).isActive = true
-        widthAnchor.constraint(equalTo: parentViewController.view.widthAnchor, multiplier: 0.33).isActive = true
-//        widthAnchor.constraint(equalToConstant: 70).isActive = true
+        setBackgroundColor()
+        setLayoutConstraints()
         
         let success: (URL?) -> Void = {
             [weak self]
@@ -55,12 +54,23 @@ class CreateReminderView: NSView, NSTextViewDelegate {
         
     }
     
+    private func setBackgroundColor() {
+        wantsLayer = true
+        layer?.backgroundColor = .init(red: 1, green: 1, blue: 1, alpha: 0.25)
+    }
+    
+    private func setLayoutConstraints() {
+        translatesAutoresizingMaskIntoConstraints = false
+        heightAnchor.constraint(greaterThanOrEqualToConstant: 260).isActive = true
+    }
+    
     private func load() {
         configureProfilePhotoView()
         configureProfilePhotoMenu()
         configureTitleTextBox()
         configureDatePickerButton()
         configureDescriptionTextBox()
+        configureRepeatPatternView()
         configureResponseLabel()
         configureCancelButton()
         configureSaveButton()
@@ -187,6 +197,117 @@ class CreateReminderView: NSView, NSTextViewDelegate {
         textView?.textContainerInset = NSSize(width: 5, height: 5)
     }
     
+    private func configureRepeatPatternView() {
+        
+        // have a variable to store repeat pattern, change it on clicking menuitem in popupbutton
+        // repeatPatternButton is a view consisting of a label to the left and a popup button to the right
+        // popup button should have pullDown to false
+        // configure each menuitem in a loop by changing its view property
+        // change view color of selected menuitem
+        // use separate functions
+        let repeatPatternLabel = NSTextField(labelWithString: "Repeat Pattern")
+        repeatPatternLabel.translatesAutoresizingMaskIntoConstraints = false
+        let repeatPatternButtonCell = repeatPatternButton.cell as? NSPopUpButtonCell
+        repeatPatternButtonCell?.menu = getRepeatPatternMenu()
+        repeatPatternButton.translatesAutoresizingMaskIntoConstraints = false
+        repeatPatternView.addSubview(repeatPatternLabel)
+        repeatPatternView.addSubview(repeatPatternButton)
+        repeatPatternView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            repeatPatternLabel.rightAnchor.constraint(equalTo: repeatPatternView.centerXAnchor, constant: -5),
+            repeatPatternLabel.centerYAnchor.constraint(equalTo: repeatPatternView.centerYAnchor),
+            
+            repeatPatternButton.leftAnchor.constraint(equalTo: repeatPatternView.centerXAnchor, constant: 5),
+            repeatPatternButton.centerYAnchor.constraint(equalTo: repeatPatternView.centerYAnchor),
+            
+            repeatPatternView.heightAnchor.constraint(equalToConstant: 30),
+            repeatPatternView.widthAnchor.constraint(greaterThanOrEqualToConstant: 230),
+        ])
+    }
+    
+    private func getRepeatPatternMenu() -> NSMenu {
+        let menu = NSMenu(title: "Repeat Pattern")
+        
+        for item in ["Never", "Every Minute", "Every Day", "Every Week", "Every Month", "Every Year"] {
+            menu.addItem(getRepeatPatternMenuItem(title: item))
+        }
+        
+        return menu
+    }
+    
+//    private func changeRepeatPatternMenuItemViewColor(_ textField: NSTextField) {
+//        guard textField.layer?.backgroundColor == .white else { return }
+//        textField.layer?.backgroundColor = .black
+//        textField.textColor = .white
+//    }
+    
+    private func getRepeatPatternMenuItem(title: String) -> NSMenuItem {
+        let menuItem = NSMenuItem()
+        menuItem.action = #selector(changeRepeatPatternMenuTitleToSelectedItem)
+//        menuItem.view = getMenuView(title: title)
+        menuItem.title = title
+        return menuItem
+    }
+    
+//    private func getMenuView(title: String) -> NSTextField {
+//        let view = NSTextField(labelWithString: title)
+//        view.wantsLayer = true
+//        view.textColor = .black
+//        view.layer?.backgroundColor = .white
+//        view.layer?.cornerRadius = 1
+//        view.lineBreakMode = .byTruncatingMiddle
+//        return view
+//    }
+    
+//    @objc func changeRepeatPatternMenuTitleToSelectedItem() {
+//        let index = repeatPatternButton.indexOfSelectedItem
+//        let item = repeatPatternButton.item(at: index)
+//        if let view = item?.view as? NSTextField {
+//            changeRepeatPatternMenuItemViewColor(view)
+//            switch(view.stringValue) {
+//            case "Never":
+//                repeatPatternValue = .never
+//            case "Every Minute":
+//                repeatPatternValue = .everyMinute
+//            case "Every Day":
+//                repeatPatternValue = .everyDay
+//            case "Every Week":
+//                repeatPatternValue = .everyWeek
+//            case "Every Month":
+//                repeatPatternValue = .everyMonth
+//            case "Every Year":
+//                repeatPatternValue = .everyYear
+//            default:
+//                repeatPatternValue = .never
+//            }
+//            repeatPatternButton.title = view.stringValue
+//        }
+//    }
+    
+    @objc func changeRepeatPatternMenuTitleToSelectedItem() {
+        let index = repeatPatternButton.indexOfSelectedItem
+        let item = repeatPatternButton.item(at: index)
+        if let title = item?.title {
+            switch(title) {
+            case "Never":
+                repeatPatternValue = .never
+            case "Every Minute":
+                repeatPatternValue = .everyMinute
+            case "Every Day":
+                repeatPatternValue = .everyDay
+            case "Every Week":
+                repeatPatternValue = .everyWeek
+            case "Every Month":
+                repeatPatternValue = .everyMonth
+            case "Every Year":
+                repeatPatternValue = .everyYear
+            default:
+                repeatPatternValue = .never
+            }
+            repeatPatternButton.title = title
+        }
+    }
+    
     private func configureResponseLabel() {
         responseLabel = NSTextField(labelWithAttributedString: NSAttributedString(string: "", attributes: [.foregroundColor: NSColor.green]))
         responseLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -225,13 +346,14 @@ class CreateReminderView: NSView, NSTextViewDelegate {
     @objc func cancel() {
         print("clear entries")
         clearEntries()
-        resetFirstResponder()
+//        resetFirstResponder()
     }
     
     private func clearEntries() {
         resetTitleTextBox()
         resetDescriptionTextBox()
         resetDatePicker()
+        resetRepeatPatternView()
     }
     
     private func resetTitleTextBox() {
@@ -246,6 +368,11 @@ class CreateReminderView: NSView, NSTextViewDelegate {
         let textView = descriptionTextBox.documentView as? NSTextView
         textView?.string = "Enter Description"
         textView?.textColor = .init(red: 1, green: 1, blue: 1, alpha: 0.5)
+    }
+    
+    private func resetRepeatPatternView() {
+        repeatPatternButton.selectItem(withTitle: "Never")
+        repeatPatternButton.title = "Never"
     }
     
     private func resetFirstResponder() {
@@ -271,6 +398,7 @@ class CreateReminderView: NSView, NSTextViewDelegate {
     }
     
     @objc func save() {
+        guard titleTextBox.stringValue.count > 0 else { return }
         print("Add entries to database")
         let title = titleTextBox.stringValue
         var description = ""
@@ -283,32 +411,42 @@ class CreateReminderView: NSView, NSTextViewDelegate {
         print("Date:", datePicker.dateValue)
         
         
-        dashboardViewController?.addReminder(title: title, description: description, date: date, success: {
+        dashboardViewController?.addReminder(title: title, description: description, date: date, repeatPattern: repeatPatternValue, success: {
             [weak self]
             in
             self?.responseLabel.stringValue = "Reminder Created!"
-            self?.responseLabel.textColor = .systemGreen
-            self?.responseLabel.font = NSFont.preferredFont(forTextStyle: .title2)
-            let shadow = NSShadow()
-            shadow.shadowBlurRadius = 5
-            shadow.shadowColor = .white
-            self?.responseLabel.shadow = shadow
+            self?.responseLabel.textColor = .black
+            self?.responseLabel.font = NSFont.systemFont(ofSize: 15)
+            self?.responseLabel.wantsLayer = true
+            self?.responseLabel.layer?.backgroundColor = .init(red: 0, green: 1, blue: 0, alpha: 0.75)
+            self?.responseLabel.layer?.cornerRadius = 5
+            self?.fadeOutAnimate(self?.responseLabel)
         }, failure: {
             [weak self]
             (message: String)
             in
             self?.responseLabel.stringValue = message
-            self?.responseLabel.textColor = .systemRed
-            self?.responseLabel.font = NSFont.preferredFont(forTextStyle: .title2)
-            let shadow = NSShadow()
-            shadow.shadowBlurRadius = 5
-            shadow.shadowColor = .white
-            self?.responseLabel.shadow = shadow
+            self?.responseLabel.textColor = .black
+            self?.responseLabel.font = NSFont.systemFont(ofSize: 15)
+            self?.responseLabel.wantsLayer = true
+            self?.responseLabel.layer?.backgroundColor = .init(red: 1, green: 0, blue: 0, alpha: 0.75)
+            self?.responseLabel.layer?.cornerRadius = 5
+            self?.fadeOutAnimate(self?.responseLabel)
         })
+        clearEntries()
+    }
+    
+    private func fadeOutAnimate(_ view: NSView?) {
+        view?.layer?.opacity = 0
+        let animation = CABasicAnimation(keyPath: "opacity")
+        animation.fromValue = 1
+        animation.toValue = 0
+        animation.duration = 2
+        view?.layer?.add(animation, forKey: nil)
     }
     
     private func addAllSubViews() {
-        subviews = [profilePhotoView, titleTextBox, datePickerButton, descriptionTextBox, responseLabel, saveButton, cancelButton]
+        subviews = [profilePhotoView, titleTextBox, datePickerButton, descriptionTextBox, repeatPatternView, responseLabel, saveButton, cancelButton]
     }
     
     private func addAllLayoutConstraints() {
@@ -330,8 +468,11 @@ class CreateReminderView: NSView, NSTextViewDelegate {
             descriptionTextBox.rightAnchor.constraint(equalTo: rightAnchor, constant: -5),
             descriptionTextBox.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.5),
             
-            responseLabel.topAnchor.constraint(equalTo: descriptionTextBox.bottomAnchor, constant: 5),
-            responseLabel.centerXAnchor.constraint(equalTo: descriptionTextBox.centerXAnchor),
+            repeatPatternView.topAnchor.constraint(equalTo: descriptionTextBox.bottomAnchor, constant: 5),
+            repeatPatternView.leftAnchor.constraint(equalTo: leftAnchor, constant: 5),
+            
+            responseLabel.bottomAnchor.constraint(equalTo: saveButton.topAnchor, constant: -5),
+            responseLabel.centerXAnchor.constraint(equalTo: saveButton.leftAnchor),
             
             saveButton.rightAnchor.constraint(equalTo: rightAnchor, constant: -5),
             saveButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5),
@@ -342,5 +483,9 @@ class CreateReminderView: NSView, NSTextViewDelegate {
             cancelButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5),
             
         ])
+    }
+    
+    override func viewDidMoveToWindow() {
+        resetFirstResponder()
     }
 }

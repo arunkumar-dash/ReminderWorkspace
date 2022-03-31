@@ -141,50 +141,26 @@
 			isa = PBXGroup;
 			children = (
 				1DAED53E27E1CD4700A11381 /* SQLite.swift */,
-				1D4EFCB927D7272E008742D0 /* Login */,
 				1DCBF00127E1BA590096952C /* ReminderDatabaseService.swift */,
 				1DA3B09627E9941900E2A63F /* ReminderDatabase.swift */,
 			);
 			path = Database;
 			sourceTree = "<group>";
 		};
-		1D4EFCB927D7272E008742D0 /* Login */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Login;
-			sourceTree = "<group>";
-		};
 		1D4EFCC327D7272E008742D0 /* Contract */ = {
 			isa = PBXGroup;
 			children = (
-				1D4EFCC827D7272E008742D0 /* Login */,
 				1DCBEFFD27E1BA050096952C /* ReminderDatabaseContract.swift */,
 			);
 			path = Contract;
 			sourceTree = "<group>";
 		};
-		1D4EFCC827D7272E008742D0 /* Login */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Login;
-			sourceTree = "<group>";
-		};
 		1D4EFCD127D7272E008742D0 /* Data Manager */ = {
 			isa = PBXGroup;
 			children = (
-				1D4EFCD627D7272E008742D0 /* Login */,
 				1DCBF00327E1BCB30096952C /* ReminderDataManager.swift */,
 			);
 			path = "Data Manager";
-			sourceTree = "<group>";
-		};
-		1D4EFCD627D7272E008742D0 /* Login */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Login;
 			sourceTree = "<group>";
 		};
 		1D4EFD4627D72822008742D0 /* Domain */ = {
