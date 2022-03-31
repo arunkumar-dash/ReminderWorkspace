@@ -21,6 +21,10 @@ class LoginView: NSView, NSGestureRecognizerDelegate, AppLoginViewContract {
     private var lastLoggedInUser: User? = nil
     
     
+    deinit {
+        print("login view deinit")
+    }
+    
     func load(_ viewController: NSViewController) {
         initializeDefaultValues()
         
@@ -269,6 +273,7 @@ class LoginView: NSView, NSGestureRecognizerDelegate, AppLoginViewContract {
             incorrectPasswordLabel.isHidden = true
             
             // dashboard view
+            parentViewController?.changeViewToDashboard()
         } else {
             incorrectPasswordLabel.isHidden = false
         }

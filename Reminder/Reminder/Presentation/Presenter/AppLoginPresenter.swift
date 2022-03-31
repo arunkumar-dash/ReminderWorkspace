@@ -6,25 +6,31 @@
 //
 
 import Foundation
-import AppKit
 import ReminderBackEnd
 
-public class AppLoginPresenter: AppLoginPresenterContract {
+class AppLoginPresenter: AppLoginPresenterContract {
+    
     weak var appLoginViewController: AppLoginViewControllerContract?
     var createUser: CreateUser?
     var getAllUsers: GetAllUsers?
     var getLastLoggedInUser: GetLastLoggedInUser?
     var setLastLoggedInUser: SetLastLoggedInUser?
+    var router: ReminderRouterContract?
+    var reminderDataManager: ReminderDataManager
+    
+    init() {
+        let reminderDatabaseService = ReminderDatabaseService()
+        reminderDataManager = ReminderDataManager(database: reminderDatabaseService)
+    }
+    
     deinit {
-        
+        print("apploginpresenter deinit")
     }
     
     func createUser(username: String, password: String, imageURL: URL?, onSuccess success: @escaping (String) -> Void, onFailure failure: @escaping (String) -> Void) {
         
+        createUser = CreateUser(dataManager: reminderDataManager)
         let request = CreateUserRequest(username: username, password: password, imageURL: imageURL)
-        let database = CreateUserDatabaseService()
-        let dataManager = CreateUserDataManager(database: database)
-        createUser = CreateUser(dataManager: dataManager)
         createUser?.execute(request: request, onSuccess: {
             (response) in
             success(response.username)
@@ -39,10 +45,7 @@ public class AppLoginPresenter: AppLoginPresenterContract {
     }
     
     func getAllUsers(onSuccess success: @escaping ([User]) -> Void, onFailure failure: @escaping (String) -> Void) {
-        let request = GetAllUsersRequest()
-        let database = GetAllUsersDatabaseService()
-        let dataManager = GetAllUsersDataManager(database: database)
-        getAllUsers = GetAllUsers(dataManager: dataManager)
+        getAllUsers = GetAllUsers(dataManager: reminderDataManager)
         let success = {
             (response: GetAllUsersResponse) in
             success(response.users)
@@ -55,14 +58,12 @@ public class AppLoginPresenter: AppLoginPresenterContract {
                 failure("No Database Connection")
             }
         }
+        let request = GetAllUsersRequest()
         getAllUsers?.execute(request: request, onSuccess: success, onFailure: failure)
     }
     
     func getLastLoggedInUser(onSuccess success: @escaping (User) -> Void, onFailure failure: @escaping (String) -> Void) {
-        let request = GetLastLoggedInUserRequest()
-        let database = GetLastLoggedInUserDatabaseService()
-        let dataManager = GetLastLoggedInUserDataManager(database: database)
-        getLastLoggedInUser = GetLastLoggedInUser(dataManager: dataManager)
+        getLastLoggedInUser = GetLastLoggedInUser(dataManager: reminderDataManager)
         let success = {
             (response: GetLastLoggedInUserResponse) in
             success(response.user)
@@ -75,11 +76,12 @@ public class AppLoginPresenter: AppLoginPresenterContract {
                 failure("No Database Connection")
             }
         }
+        let request = GetLastLoggedInUserRequest()
         getLastLoggedInUser?.execute(request: request, onSuccess: success, onFailure: failure)
     }
     
     func setLastLoggedInUser(user: User) {
-        let request = SetLastLoggedInUserRequest(user: user)
+        setLastLoggedInUser = SetLastLoggedInUser(dataManager: reminderDataManager)
         let success = {
             (response: SetLastLoggedInUserResponse) in
             print("Last logged in User: \(response.user.username)")
@@ -92,9 +94,11 @@ public class AppLoginPresenter: AppLoginPresenterContract {
                 print("No Database Connection")
             }
         }
-        let database = SetLastLoggedInUserDatabaseService()
-        let dataManager = SetLastLoggedInUserDataManager(database: database)
-        setLastLoggedInUser = SetLastLoggedInUser(dataManager: dataManager)
+        let request = SetLastLoggedInUserRequest(user: user)
         setLastLoggedInUser?.execute(request: request, onSuccess: success, onFailure: failure)
+    }
+    
+    func changeViewToDashboard() {
+        router?.changeViewControllerToDashboard()
     }
 }

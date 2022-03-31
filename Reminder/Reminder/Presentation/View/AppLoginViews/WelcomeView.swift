@@ -16,6 +16,11 @@ class WelcomeView: NSView, AppLoginViewContract {
     
     private var parentViewController: AppLoginViewControllerContract?
     
+    
+    deinit {
+        print("welcome view deinit")
+    }
+    
     func load(_ viewController: NSViewController) {
         
         guard let parentViewController = viewController as? AppLoginViewControllerContract else {

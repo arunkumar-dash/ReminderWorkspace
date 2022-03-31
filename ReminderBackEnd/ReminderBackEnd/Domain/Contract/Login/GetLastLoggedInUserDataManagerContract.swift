@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol GetLastLoggedInUserDataManagerContract {
-    func getLastLoggedInUser(success: (User) -> Void, failure: (GetLastLoggedInUserError) -> Void)
+    func getLastLoggedInUser(success: @escaping (User) -> Void, failure: @escaping (GetLastLoggedInUserError) -> Void)
 }

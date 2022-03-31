@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol RemoveUserDataManagerContract {
-    func removeUser(username: String, success: (String) -> Void, failure: (RemoveUserError) -> Void)
+    func removeUser(username: String, success: @escaping (String) -> Void, failure: @escaping (RemoveUserError) -> Void)
 }

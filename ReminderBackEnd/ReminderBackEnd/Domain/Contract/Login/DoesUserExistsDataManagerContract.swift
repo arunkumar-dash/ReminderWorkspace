@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol DoesUserExistsDataManagerContract {
-    func doesUserExists(username: String, success: (String) -> Void, failure: (DoesUserExistsError) -> Void)
+    func doesUserExists(username: String, success: @escaping (String) -> Void, failure: @escaping (DoesUserExistsError) -> Void)
 }

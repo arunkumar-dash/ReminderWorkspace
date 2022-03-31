@@ -10,6 +10,8 @@ import AppKit
 import ReminderBackEnd
 
 protocol AppLoginPresenterContract {
+    var router: ReminderRouterContract? { get set }
+    
     var appLoginViewController: AppLoginViewControllerContract? { get set }
     
     func createUser(username: String, password: String, imageURL: URL?, onSuccess success: @escaping (String) -> Void, onFailure failure: @escaping (String) -> Void)
@@ -19,4 +21,6 @@ protocol AppLoginPresenterContract {
     func getLastLoggedInUser(onSuccess success: @escaping (User) -> Void, onFailure failure: @escaping (String) -> Void)
     
     func setLastLoggedInUser(user: User)
+    
+    func changeViewToDashboard()
 }

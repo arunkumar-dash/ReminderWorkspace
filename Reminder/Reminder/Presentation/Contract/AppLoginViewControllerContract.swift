@@ -18,6 +18,8 @@ protocol AppLoginViewControllerContract: NSViewController {
     
     func changeViewToSwitchUser()
     
+    func changeViewToDashboard()
+    
     func navigateBackToPreviousView()
     
     func getAllUsers(success: @escaping ([User]) -> Void, failure: @escaping (String) -> Void)

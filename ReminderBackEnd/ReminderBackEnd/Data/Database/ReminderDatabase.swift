@@ -1,126 +1,12 @@
 //
 //  ReminderDatabase.swift
-//  Reminder
+//  ReminderBackEnd
 //
-//  Created by Arun Kumar on 07/03/22.
+//  Created by Arun Kumar on 22/03/22.
 //
 
 import Foundation
 import SQLite3
-
-/// Errors to handle SQLite3 error codes
-enum SQLiteError: Error {
-    case connectionError(message: String)
-    case preparationError(message: String)
-    case stepError(message: String)
-    case bindError(message: String)
-    case tableCreationFailure(message: String)
-}
-
-/// Localized Description for `SQLiteError`
-extension SQLiteError: LocalizedError {
-    var errorDescription: String? {
-        switch self {
-        case .connectionError(message: let message):
-            return "Connection Error: \(message)"
-        case .preparationError(message: let message):
-            return "Preparation Error: \(message)"
-        case .stepError(message: let message):
-            return "Step Error: \(message)"
-        case .bindError(message: let message):
-            return "Bind Error: \(message)"
-        case .tableCreationFailure(message: let message):
-            return "Table Creation Failure: \(message)"
-        }
-    }
-}
-
-/// A wrapper over the SQLite3 framework
-class SQLite {
-    /// The C pointer which is used to perform all database operations
-    private let dbPointer: OpaquePointer?
-    private static let noErrorMessage = "No error message provided from sqlite."
-    /// Initialiser is private because the user should instantiate only using static functions
-    private init(dbPointer: OpaquePointer?) {
-        self.dbPointer = dbPointer
-    }
-    deinit {
-        /// Clearing the memory referenced by the pointer to avoid memory leaks
-        sqlite3_close(dbPointer)
-    }
-    /// Connects the database to the file with extension .sqlite and returns an SQLite instance
-    /// - Parameter path: The absolute path of the file with .sqlite extension
-    /// - Returns: An SQLite instance initiated with the database
-    static func connect(path: String) throws -> SQLite {
-        var db: OpaquePointer?
-        /// Opening the connection to database, `SQLITE_OK` is a success code
-        if sqlite3_open(path, &db) == SQLITE_OK {
-            print("Connection success")
-            return SQLite(dbPointer: db)
-        } else {
-            defer {
-                if db != nil {
-                    /// Closing the database incase of failure
-                    sqlite3_close(db)
-                }
-            }
-            /// Handling errors
-            if let errorPointer = sqlite3_errmsg(db) {
-                let errorMessage = String(cString: errorPointer)
-                throw SQLiteError.connectionError(message: errorMessage)
-            } else {
-                throw SQLiteError.connectionError(message: Self.noErrorMessage)
-            }
-        }
-    }
-    /// A property to hold the most recent error message
-    var errorMessage: String {
-        if let errorPointer = sqlite3_errmsg(dbPointer) {
-            let errorMessage = String(cString: errorPointer)
-            return errorMessage
-        } else {
-            return Self.noErrorMessage
-        }
-    }
-}
-
-extension SQLite {
-    /// Prepares the SQL command and returns the pointer to the compiled command
-    /// - Parameter sql: The SQL command as a `String`
-    /// - Returns: An `OpaquePointer` which references the compiled SQL statement
-    /// - Throws:
-    ///  - preparationError: When `sqlite3_prepare_v2()` returns a constant other than `SQLITE_OK`
-    func prepareStatement(sql: String) throws -> OpaquePointer? {
-        var statement: OpaquePointer?
-        guard sqlite3_prepare_v2(dbPointer, sql, -1, &statement, nil) == SQLITE_OK else {
-            throw SQLiteError.preparationError(message: errorMessage)
-        }
-        return statement
-    }
-}
-
-extension SQLite {
-    /// Creates a table
-    /// - Parameter createStatement: The SQL command to create the table
-    func createTable(createStatement: String) throws {
-        
-        do {
-
-            let createTableStatement = try prepareStatement(sql: createStatement)
-            
-            defer {
-                sqlite3_finalize(createTableStatement)
-            }
-            
-            guard sqlite3_step(createTableStatement) == SQLITE_DONE else {
-                throw SQLiteError.stepError(message: errorMessage)
-            }
-        } catch let error {
-            let errorMessage = error.localizedDescription
-            throw SQLiteError.tableCreationFailure(message: errorMessage)
-        }
-    }
-}
 
 /// The formats available to be encoded
 enum EncodingFormat {
@@ -190,42 +76,551 @@ extension Data {
 
 
 class ReminderDatabase {
-    private var username: String
-    private var database: SQLite?
-    /// Generates ID to insert data into the database
-    private var idGenerator: Int32
-    /// The SQL create command for the specific table
-    private let createStatement: String =
-        """
-        CREATE TABLE Reminder(
-        id INT PRIMARY KEY NOT NULL,
-        base64_encoded_json_string VARCHAR(255)
-        );
-        """
-    /// The SQL insert command for the specific table
-    private let insertStatement: String =
-        """
-        INSERT INTO Reminder(id, base64_encoded_json_string)
-        VALUES (?, ?);
-        """
-    /// The SQL select command for the specific table
-    private let selectStatement: String =
-        """
-        SELECT * FROM Reminder WHERE id = ?;
-        """
-    
-    init(for username: String) {
-        self.idGenerator = 1
-        self.username = username
+    private init() {
         if connect() == false {
-            print("Failed to connect to database")
+            print("Database Connection Failed")
         }
     }
     
-    private func getLastRowID() -> Int32? {
+    
+    static var shared: ReminderDatabase = ReminderDatabase()
+    let folderPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(".ReminderAppDatabase")
+    let imagesFolderPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(".ReminderAppDatabase").appendingPathComponent(".Images")
+    let databasePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(".ReminderAppDatabase").appendingPathComponent("Reminder.sqlite")
+    
+    private func connect() -> Bool {
+        
+        // check folderPath exists, no -> create folder
+        do {
+            try FileManager.default.createDirectory(at: folderPath, withIntermediateDirectories: true, attributes: nil)
+        } catch let error {
+            print("Failed to create directory while connecting to database")
+            print(error)
+            return false
+        }
+        
+        // check imagesPath exists, no -> create folder
+        do {
+            try FileManager.default.createDirectory(at: imagesFolderPath, withIntermediateDirectories: true, attributes: nil)
+        } catch let error {
+            print("Failed to create images directory")
+            print(error)
+            return false
+        }
+        
+        // check sqlite file exists, no -> create
+        // check tables(User, Reminder, UserConstant, Constant) exists, no -> create
+        return connectDatabase() && true
+    }
+    
+    var database: SQLite?
+    
+    private func connectDatabase() -> Bool {
+        
+        return createUserTable() && createReminderTable() && createUserConstantTable() && createConstantTable()
+    }
+    
+    private func createUserTable() -> Bool {
+        
+        do {
+            /// Connecting to the SQLite file
+            if database == nil {
+                database = try SQLite.connect(path: databasePath.relativePath)
+            }
+            
+            let createUserStatement = """
+            CREATE TABLE User (
+            username VARCHAR PRIMARY KEY NOT NULL,
+            password VARCHAR NOT NULL,
+            image VARCHAR
+            );
+            """
+
+            if let database = database {
+                /// Creating the User table
+                
+                try database.createTable(createStatement: createUserStatement)
+                print("User table created successfully")
+                
+                return true
+            } else {
+                print("No database connected -- unexpected error")
+                return false
+            }
+        } catch SQLiteError.tableCreationFailure(message: _) {
+            print("User table already exists")
+            return true
+        } catch SQLiteError.connectionError(message: let error) {
+            print("SQL connection failed")
+            print(error)
+            return false
+        } catch SQLiteError.stepError(message: let error) {
+            print("User table creation failed")
+            print(error)
+            return true
+        } catch SQLiteError.preparationError(message: let error) {
+            print("Preparation error while creating database")
+            print(error)
+            return false
+        } catch let error {
+            print("Unexpected error occured while initiating database")
+            print(error)
+            return false
+        }
+    }
+    
+    private func createReminderTable() -> Bool {
+        
+        do {
+            /// Connecting to the SQLite file
+            if database == nil {
+                database = try SQLite.connect(path: databasePath.relativePath)
+            }
+            
+            let createReminderStatement = """
+            CREATE TABLE Reminder (
+            username VARCHAR NOT NULL,
+            id INT NOT NULL,
+            base64_encoded_json_string VARCHAR,
+            PRIMARY KEY (username, id),
+            FOREIGN KEY (username) REFERENCES User(username)
+            );
+            """
+            
+            if let database = database {
+                /// Creating the Reminder table
+                
+                try database.createTable(createStatement: createReminderStatement)
+                print("Reminder table created successfully")
+                
+                return true
+            } else {
+                print("No database connected -- unexpected error")
+                return false
+            }
+        } catch SQLiteError.tableCreationFailure(message: _) {
+            print("Reminder table already exists")
+            return true
+        } catch SQLiteError.connectionError(message: let error) {
+            print("SQL connection failed")
+            print(error)
+            return false
+        } catch SQLiteError.stepError(message: let error) {
+            print("Reminder table creation failed")
+            print(error)
+            return true
+        } catch SQLiteError.preparationError(message: let error) {
+            print("Preparation error while creating database")
+            print(error)
+            return false
+        } catch let error {
+            print("Unexpected error occured while initiating database")
+            print(error)
+            return false
+        }
+    }
+    
+    
+    private func createUserConstantTable() -> Bool {
+        
+        do {
+            /// Connecting to the SQLite file
+            if database == nil {
+                database = try SQLite.connect(path: databasePath.relativePath)
+            }
+            
+            let createUserConstantStatement = """
+            CREATE TABLE UserConstant (
+            username VARCHAR NOT NULL,
+            key VARCHAR NOT NULL,
+            value VARCHAR,
+            PRIMARY KEY (username, key),
+            FOREIGN KEY (username) REFERENCES User(username)
+            );
+            """
+            
+            if let database = database {
+                /// Creating the UserConstant table
+                
+                try database.createTable(createStatement: createUserConstantStatement)
+                print("UserConstant table created successfully")
+                
+                return true
+            } else {
+                print("No database connected -- unexpected error")
+                return false
+            }
+        } catch SQLiteError.tableCreationFailure(message: _) {
+            print("UserConstant table already exists")
+            return true
+        } catch SQLiteError.connectionError(message: let error) {
+            print("SQL connection failed")
+            print(error)
+            return false
+        } catch SQLiteError.stepError(message: let error) {
+            print("UserConstant table creation failed")
+            print(error)
+            return true
+        } catch SQLiteError.preparationError(message: let error) {
+            print("Preparation error while creating database")
+            print(error)
+            return false
+        } catch let error {
+            print("Unexpected error occured while initiating database")
+            print(error)
+            return false
+        }
+    }
+    
+    private func createConstantTable() -> Bool {
+        
+        do {
+            /// Connecting to the SQLite file
+            if database == nil {
+                database = try SQLite.connect(path: databasePath.relativePath)
+            }
+            
+            let createConstantStatement = """
+            CREATE TABLE Constant (
+            key VARCHAR PRIMARY KEY NOT NULL,
+            value VARCHAR
+            );
+            """
+            
+            if let database = database {
+                /// Creating the UserConstant table
+                
+                try database.createTable(createStatement: createConstantStatement)
+                print("Constant table created successfully")
+                
+                return true
+            } else {
+                print("No database connected -- unexpected error")
+                return false
+            }
+        } catch SQLiteError.tableCreationFailure(message: _) {
+            print("Constant table already exists")
+            return true
+        } catch SQLiteError.connectionError(message: let error) {
+            print("SQL connection failed")
+            print(error)
+            return false
+        } catch SQLiteError.stepError(message: let error) {
+            print("Constant table creation failed")
+            print(error)
+            return true
+        } catch SQLiteError.preparationError(message: let error) {
+            print("Preparation error while creating database")
+            print(error)
+            return false
+        } catch let error {
+            print("Unexpected error occured while initiating database")
+            print(error)
+            return false
+        }
+    }
+    
+    func createUser(username: String, password: String, imageURL: URL?) -> Bool {
+        
+        var result = true
+        let insertStatement: String = """
+        INSERT INTO User(username, password, image)
+        VALUES ('\(username)', ?, ?);
+        """
+        do {
+            if let database = database {
+                let insertSql = try database.prepareStatement(sql: insertStatement)
+                defer {
+                    database.finalize(insertSql)
+                }
+                
+                
+                guard let encodedPassword = password.data(using: .utf8)?.base64EncodedString() else {
+                    print("Error in encoding to base64")
+                    return false
+                }
+                let passwordString = encodedPassword as NSString
+    
+                do {
+                    try FileManager.default.createDirectory(at: imagesFolderPath, withIntermediateDirectories: true, attributes: nil)
+                } catch let error {
+                    print("Failed to create directory while inserting user image to database")
+                    print(error)
+                    return false
+                }
+                var localImageURL: URL? = nil
+                if let imageURL = imageURL {
+                    let destinationURL = imagesFolderPath.appendingPathComponent(imageURL.lastPathComponent)
+                    do {
+                        try FileManager.default.copyItem(at: imageURL, to: destinationURL)
+                    } catch let error {
+                        print("Some error occured while copying image to local folder.")
+                        print(error)
+                    }
+                    localImageURL = destinationURL
+                }
+                let imageString = (localImageURL?.relativePath) as NSString?
+                guard database.bindText(insertSql, 1, passwordString.utf8String) &&
+                         database.bindText(insertSql, 2, imageString?.utf8String)
+                else {
+                    throw SQLiteError.bindError(message: database.errorMessage)
+                }
+                /// Executing the query
+                guard database.step(insertSql) == SQLITE_DONE else {
+                    throw SQLiteError.stepError(message: database.errorMessage)
+                }
+                
+                print("Successfully inserted row.")
+                
+                
+                createDefaultConstants(for: username)
+                
+                
+                return result
+            } else {
+                print("No database connection")
+                result = false
+                return result
+            }
+        } catch SQLiteError.stepError(message: let error) {
+            print("Cannot create entry in User table")
+            print(error)
+            return false
+        } catch SQLiteError.bindError(message: let error) {
+            print("Cannot create entry in User table")
+            print(error)
+            return result
+        } catch SQLiteError.preparationError(message: let error) {
+            print("Cannot create entry in User table")
+            print(error)
+            return false
+        } catch let error {
+            print("Cannot create entry in User table")
+            print(error)
+            return false
+        }
+    }
+    
+    func getPassword(forUsername username: String) -> String? {
+        
+        let selectStatement = """
+        SELECT password FROM User WHERE username = '\(username)';
+        """
+        do {
+            if let database = database {
+                /// Preparing the query
+                let selectSql = try database.prepareStatement(sql: selectStatement)
+                defer {
+                    database.finalize(selectSql)
+                }
+                
+                /// Executing the query
+                guard database.step(selectSql) == SQLITE_ROW else {
+                    print("Failure in retrieving from User table, no rows found")
+                    print(database.errorMessage)
+                    return nil
+                }
+                guard let result = database.columnText(selectSql, 0) else {
+                    print("Failure in retrieving from User table, no data found")
+                    print(database.errorMessage)
+                    return nil
+                }
+                /// Converting result of cString to the object after decoding from base64
+                let encodedPassword = String(cString: result)
+                print("Successfully retrieved row.")
+                guard let data = Data(base64Encoded: encodedPassword) else {
+                    print("Error in decoding from base64")
+                    return nil
+                }
+                guard let password = String(data: data, encoding: .utf8) else {
+                    print("Error in decoding from data")
+                    return nil
+                }
+                return password
+            } else {
+                print("No database connection")
+                return nil
+            }
+        } catch let error {
+            print("Error while retrieving row from User table")
+            print(error)
+            return nil
+        }
+    }
+    
+    func doesUserExists(username: String) -> Bool {
+        
+        
+        let selectStatement = """
+        SELECT password FROM User WHERE username = '\(username)';
+        """
+        do {
+            if let database = database {
+                /// Preparing the query
+                let selectSql = try database.prepareStatement(sql: selectStatement)
+                defer {
+                    database.finalize(selectSql)
+                }
+                
+                /// Executing the query
+                guard database.step(selectSql) == SQLITE_ROW else {
+                    print("Failure in retrieving from User table, no rows found")
+                    print(database.errorMessage)
+                    return false
+                }
+                if let _ = database.columnText(selectSql, 0) {
+                    print("Successfully retrieved row.")
+                    return true
+                } else {
+                    print("Failure in retrieving from User table, no data found")
+                    print(database.errorMessage)
+                    return false
+                }
+            } else {
+                print("No database connection")
+                return false
+            }
+        } catch let error {
+            print("Error while retrieving row from User table")
+            print(error)
+            return false
+        }
+    }
+    
+    func getAllUsers() -> [User] {
+        
+        let selectAllStatement: String =
+        """
+        SELECT * FROM User;
+        """
+        var userList: [User] = []
+        do {
+            if let database = database {
+                /// Preparing the query
+                let selectSql = try database.prepareStatement(sql: selectAllStatement)
+                defer {
+                    database.finalize(selectSql)
+                }
+                /// Executing the query
+                while database.step(selectSql) == SQLITE_ROW {
+                    /// Retrieving the data of the first row from the result
+                    guard let username = database.columnText(selectSql, 0) else {
+                        continue
+                    }
+                    guard let encodedCStringPassword = database.columnText(selectSql, 1) else {
+                        continue
+                    }
+                    let encodedPassword = String(cString: encodedCStringPassword)
+                    guard let data = Data(base64Encoded: encodedPassword) else {
+                        continue
+                    }
+                    guard let password = String(data: data, encoding: .utf8) else {
+                        continue
+                    }
+                    var imageURL: URL? = nil
+                    if let optionalURL = database.columnText(selectSql, 2) {
+                        imageURL = URL(string: String(cString: optionalURL))
+                    }
+                    let user = User(username: String(cString: username), password: password, imageURL: imageURL)
+                    userList.append(user)
+                }
+                return userList
+            } else {
+                print("No database connection")
+                return []
+            }
+        } catch let error {
+            print("Error while retrieving row from User table")
+            print(error)
+            return []
+        }
+    }
+    
+    func editUser(password: String, for username: String) -> Bool {
+        
+        var updateStatement: String {
+            """
+            UPDATE User SET password = ?
+            WHERE username = '\(username)';
+            """
+        }
+        do {
+            if let database = database {
+                let updateSql = try database.prepareStatement(sql: updateStatement)
+                defer {
+                    database.finalize(updateSql)
+                }
+                
+                guard let encodedPassword = password.data(using: .utf8)?.base64EncodedString() else {
+                    print("Error in encoding to base64")
+                    return false
+                }
+                let passwordString = encodedPassword as NSString
+                
+                guard database.bindText(updateSql, 1, passwordString.utf8String)
+                else {
+                    throw SQLiteError.bindError(message: database.errorMessage)
+                }
+                
+                guard database.step(updateSql) == SQLITE_DONE else {
+                    throw SQLiteError.stepError(message: database.errorMessage)
+                }
+                print("Successfully updated row.")
+                return true
+            } else {
+                print("No database connection")
+                return false
+            }
+        } catch SQLiteError.stepError(message: let error) {
+            print("Failed to update a row in User table")
+            print(error)
+            return false
+        } catch let error {
+            print("Failed to update a row in User table")
+            print(error)
+            return false
+        }
+    }
+    
+    func removeUser(username: String) -> Bool {
+        
+        let deleteStatement: String = """
+        DELETE FROM User
+        WHERE username = '\(username)';
+        """
+        do {
+            if let database = database {
+                let deleteSql = try database.prepareStatement(sql: deleteStatement)
+                defer {
+                    database.finalize(deleteSql)
+                }
+                
+                
+                guard database.step(deleteSql) == SQLITE_DONE else {
+                    throw SQLiteError.stepError(message: database.errorMessage)
+                }
+                print("Successfully deleted row.")
+                return true
+            } else {
+                print("No database connection")
+                return false
+            }
+        } catch SQLiteError.stepError(message: let error) {
+            print("Failed to delete a row in User table")
+            print(error)
+            return false
+        } catch let error {
+            print("Failed to delete a row in User table")
+            print(error)
+            return false
+        }
+    }
+    
+    private func getLastRowID(for user: String) -> Int32? {
+        
         var query: String {
             """
-            SELECT MAX(id) FROM Reminder;
+            SELECT MAX(id) FROM Reminder WHERE username = '\(user)';
             """
         }
         do {
@@ -233,14 +628,14 @@ class ReminderDatabase {
                 /// Preparing the query
                 let sql = try database.prepareStatement(sql: query)
                 defer {
-                    sqlite3_finalize(sql)
+                    database.finalize(sql)
                 }
                 /// Executing the query
-                guard sqlite3_step(sql) == SQLITE_ROW else {
+                guard database.step(sql) == SQLITE_ROW else {
                     return nil
                 }
                 /// Retrieving the data of the first row from the result
-                guard let result = sqlite3_column_text(sql, 0) else {
+                guard let result = database.columnText(sql, 0) else {
                     return nil
                 }
                 
@@ -253,12 +648,75 @@ class ReminderDatabase {
             return nil
         }
     }
-
     
-    func getAllRows() -> [Reminder?] {
+    func createReminder(for username: String, reminder: Reminder) -> Bool {
+        
+        let idGenerator: Int32
+        if let lastRowID = getLastRowID(for: username) {
+            idGenerator = lastRowID + 1
+        } else {
+            idGenerator = 1
+        }
+        let insertStatement: String =
+        """
+        INSERT INTO Reminder(username, id, base64_encoded_json_string)
+        VALUES ('\(username)', ?, ?);
+        """
+        do {
+            var result = true
+            if let database = database {
+                let insertSql = try database.prepareStatement(sql: insertStatement)
+                defer {
+                    database.finalize(insertSql)
+                }
+                /// Assign id
+                var mutableElement = reminder
+                mutableElement.id = idGenerator
+                
+                /// Object encoded as string
+                let string = try mutableElement.encode(as: .json).base64EncodedString() as NSString
+                /// Binding the `id` and the `data`
+                guard database.bindInt(insertSql, 1, idGenerator) &&
+                        database.bindText(insertSql, 2, string.utf8String)
+                else {
+                    throw SQLiteError.bindError(message: database.errorMessage)
+                }
+                /// Executing the query
+                guard database.step(insertSql) == SQLITE_DONE else {
+                    throw SQLiteError.stepError(message: database.errorMessage)
+                }
+                
+                print("Successfully inserted row.")
+                return result
+            } else {
+                print("No database connection")
+                result = false
+                return result
+            }
+        } catch SQLiteError.stepError(message: let error) {
+            print("Cannot create entry in Reminder table")
+            print(error)
+            return false
+        } catch SQLiteError.bindError(message: let error) {
+            print("Cannot create entry in Reminder table")
+            print(error)
+            return false
+        } catch SQLiteError.preparationError(message: let error) {
+            print("Cannot create entry in Reminder table")
+            print(error)
+            return false
+        } catch let error {
+            print("Cannot create entry in Reminder table")
+            print(error)
+            return false
+        }
+    }
+    
+    func getAllReminders(for username: String) -> [Reminder?] {
+        
         let selectAllStatement: String =
         """
-        SELECT * FROM Reminder;
+        SELECT * FROM Reminder WHERE username = '\(username)';
         """
         var reminderList: [Reminder?] = []
         do {
@@ -266,12 +724,12 @@ class ReminderDatabase {
                 /// Preparing the query
                 let selectSql = try database.prepareStatement(sql: selectAllStatement)
                 defer {
-                    sqlite3_finalize(selectSql)
+                    database.finalize(selectSql)
                 }
                 /// Executing the query
-                while sqlite3_step(selectSql) == SQLITE_ROW {
+                while database.step(selectSql) == SQLITE_ROW {
                     /// Retrieving the data of the first row from the result
-                    guard let result = sqlite3_column_text(selectSql, 1) else {
+                    guard let result = database.columnText(selectSql, 2) else {
                         continue
                     }
                     /// Converting result of cString to the object after decoding from base64
@@ -290,160 +748,94 @@ class ReminderDatabase {
         }
     }
     
-    
-    /// Connects the database and creates the table for the specific type
-    /// - Returns: A `Bool` value determining the success or failure
-    @discardableResult
-    private func connect() -> Bool {
-        var result = true
-        defer {
-            /// Retrieve last row id for `idGenerator`, if connection successful
-            if result {
-                if let lastRowID = getLastRowID() {
-                    print("Retrieved last row id from Reminder table: \(lastRowID)")
-                    idGenerator = lastRowID
-                } else {
-                    print("No rows exist in Reminder table")
-                }
-            }
-        }
-        let constants = Constants()
-        let databaseFolder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0].appendingPathComponent(constants.DB_FOLDER)
-        /// The path where the database file is to be located
+    func updateReminder(username: String, id: Int32, element: Reminder) -> Bool {
+        
         do {
-            try FileManager.default.createDirectory(at: databaseFolder, withIntermediateDirectories: true, attributes: nil)
-        } catch let error {
-            print("Failed to create directory while connecting to database")
-            print(error)
-            return false
-        }
-        let DB_PATH = databaseFolder.appendingPathComponent("\(username).sqlite").relativePath
-
-        do {
-            /// Connecting to the SQLite file
-            if database == nil {
-                database = try SQLite.connect(path: DB_PATH)
-            }
+            let mutableElement = element
             
+            /// The instance is converted to json and encoded in base64 encoding
+            let string = try mutableElement.encode(as: .json).base64EncodedString()
+            
+            let updateStatement: String = """
+                UPDATE Reminder SET base64_encoded_json_string = '\(string)'
+                WHERE id = \(id) AND username = '\(username)';
+                """
             if let database = database {
-                /// Creating the table
-                try database.createTable(createStatement: createStatement)
-                print("Reminder table created successfully")
-                return result
-            } else {
-                print("No database connected -- unexpected error")
-                result = false
-                return result
-            }
-        } catch SQLiteError.tableCreationFailure(message: _) {
-            print("Table already exists")
-            return result
-        } catch SQLiteError.connectionError(message: let error) {
-            print("SQL connection failed")
-            print(error)
-            result = false
-            return result
-        } catch SQLiteError.stepError(message: let error) {
-            print("Reminder table creation failed")
-            print(error)
-            result = false
-            return result
-        } catch SQLiteError.bindError(message: let error) {
-            print("Bind error while creating database")
-            print(error)
-            result = false
-            return result
-        } catch SQLiteError.preparationError(message: let error) {
-            print("Preparation error while creating database")
-            print(error)
-            result = false
-            return result
-        } catch let error {
-            print("Unexpected error occured while initiating database")
-            print(error)
-            result = false
-            return result
-        }
-    }
-    
-    func create(element: Reminder) -> Bool {
-        do {
-            idGenerator += 1
-            var result = true
-            if let database = database {
-                let insertSql = try database.prepareStatement(sql: insertStatement)
+                let updateSql = try database.prepareStatement(sql: updateStatement)
                 defer {
-                    sqlite3_finalize(insertSql)
+                    database.finalize(updateSql)
                 }
-                /// Assign id
-                var mutableElement = element
-                mutableElement.id = idGenerator
-                
-                /// Object encoded as string
-                let string = try mutableElement.encode(as: .json).base64EncodedString() as NSString
-                /// Binding the `id` and the `data`
-                guard sqlite3_bind_int(insertSql, 1, idGenerator) == SQLITE_OK &&
-                        sqlite3_bind_text(insertSql, 2, string.utf8String, -1, nil) == SQLITE_OK
-                else {
-                    throw SQLiteError.bindError(message: database.errorMessage)
+                guard database.step(updateSql) == SQLITE_DONE else {
+                    print("Failure in updating Reminder table")
+                    print(database.errorMessage)
+                    return false
                 }
-                /// Executing the query
-                guard sqlite3_step(insertSql) == SQLITE_DONE else {
-                    throw SQLiteError.stepError(message: database.errorMessage)
-                }
-                
-                print("Successfully inserted row.")
-                return result
+                print("Successfully updated row.")
+                return true
             } else {
                 print("No database connection")
-                idGenerator -= 1
-                result = false
-                return result
+                return false
             }
-        } catch SQLiteError.stepError(message: let error) {
-            print("Cannot create entry in Reminder table")
-            print(error)
-            return false
-        } catch SQLiteError.bindError(message: let error) {
-            print("Cannot create entry in Reminder table")
-            print(error)
-            return false
-        } catch SQLiteError.preparationError(message: let error) {
-            print("Cannot create entry in Reminder table")
-            print(error)
-            return false
+            
         } catch let error {
-            print("Cannot create entry in Reminder table")
+            print("Failed to update a row in Reminder table")
             print(error)
-            idGenerator -= 1
             return false
         }
     }
-    /// Returns an object retrieved from the table at the `id` provided in parameter
-    /// - Parameter id: The row id where the data is located
-    /// - Returns: An optional object constructed with the data retrieved from the database
-    func retrieve(id: Int32) -> Reminder? {
+    
+    func deleteReminder(for username: String, id: Int32) -> Bool {
+        
+        do {
+            let deleteStatement: String = """
+                DELETE FROM Reminder
+                WHERE id = \(id) and username = '\(username)';
+                """
+            if let database = database {
+                let deleteSql = try database.prepareStatement(sql: deleteStatement)
+                defer {
+                    database.finalize(deleteSql)
+                }
+                guard database.step(deleteSql) == SQLITE_DONE else {
+                    print("Failure in deleting from Reminder table")
+                    print(database.errorMessage)
+                    return false
+                }
+                print("Successfully deleted row.")
+                return true
+            } else {
+                print("No database connection")
+                return false
+            }
+        } catch let error {
+            print("Failed to delete a row in Reminder table")
+            print(error)
+            return false
+        }
+    }
+    
+    func getReminder(for username: String, id: Int32) -> Reminder? {
+        
+        
+        let selectStatement: String =
+        """
+        SELECT * FROM Reminder WHERE id = \(id) and username = '\(username)';
+        """
         do {
             if let database = database {
                 /// Preparing the query
                 let selectSql = try database.prepareStatement(sql: selectStatement)
                 defer {
-                    sqlite3_finalize(selectSql)
-                }
-                /// Binding the `id` with the command
-                guard sqlite3_bind_int(selectSql, 1, id) == SQLITE_OK else {
-                    print("Failure in binding id in SQL statement while retrieving from Reminder table")
-                    print(database.errorMessage)
-                    return nil
+                    database.finalize(selectSql)
                 }
                 /// Executing the query
-                guard sqlite3_step(selectSql) == SQLITE_ROW else {
+                guard database.step(selectSql) == SQLITE_ROW else {
                     print("Failure in retrieving from Reminder table")
                     print(database.errorMessage)
                     return nil
                 }
                 /// Retrieving the data of the first row from the result
-                guard let result = sqlite3_column_text(selectSql, 1) else {
+                guard let result = database.columnText(selectSql, 2) else {
                     print("Failure in retrieving from Reminder table, no rows found")
                     print(database.errorMessage)
                     return nil
@@ -462,33 +854,149 @@ class ReminderDatabase {
             return nil
         }
     }
-    /// Updates the table at the `id` with the `element`
-    /// - Parameters:
-    ///  - id: The row `id` where the element is present in the database
-    ///  - element: The object to be updated
-    /// - Returns: A `Bool` determining the result of the update query
-    func update(id: Int32, element: Reminder) -> Bool {
+    
+    func getUserConstant(for username: String, key: String) -> String? {
+        
+        
+        let selectStatement =
+        """
+        SELECT value FROM UserConstant
+        WHERE username = '\(username)' and key = '\(key)';
+        """
         do {
-            /// Assign id
-            var mutableElement = element
-            mutableElement.id = idGenerator
-            
-            /// The instance is converted to json and encoded in base64 encoding
-            let string = try mutableElement.encode(as: .json).base64EncodedString()
-            
-            var updateStatement: String {
-                """
-                UPDATE Reminder SET base64_encoded_json_string='\(string)'
-                WHERE id=\(id);
-                """
+            if let database = database {
+                /// Preparing the query
+                let selectSql = try database.prepareStatement(sql: selectStatement)
+                defer {
+                    database.finalize(selectSql)
+                }
+                /// Executing the query
+                guard database.step(selectSql) == SQLITE_ROW else {
+                    print("Failure in retrieving from UserConstant table")
+                    print(database.errorMessage)
+                    return nil
+                }
+                /// Retrieving the data of the first row from the result
+                guard let result = database.columnText(selectSql, 0) else {
+                    print("Failure in retrieving from UserConstant table")
+                    print(database.errorMessage)
+                    return nil
+                }
+                /// Converting result of cString to String
+                let value = String(cString: result)
+                print("Successfully retrieved row.")
+                return value
+            } else {
+                print("No database connection")
+                return nil
             }
+        } catch let error {
+            print("Error while retrieving row from UserConstant table")
+            print(error)
+            return nil
+        }
+    }
+    
+    func getConstant(for key: String) -> String? {
+        
+        
+        let selectStatement =
+        """
+        SELECT value FROM Constant
+        WHERE key = '\(key)';
+        """
+        do {
+            if let database = database {
+                /// Preparing the query
+                let selectSql = try database.prepareStatement(sql: selectStatement)
+                defer {
+                    database.finalize(selectSql)
+                }
+                /// Executing the query
+                guard database.step(selectSql) == SQLITE_ROW else {
+                    print("Failure in retrieving from Constant table")
+                    print(database.errorMessage)
+                    return nil
+                }
+                /// Retrieving the data of the first row from the result
+                guard let result = database.columnText(selectSql, 0) else {
+                    print("Failure in retrieving from Constant table")
+                    print(database.errorMessage)
+                    return nil
+                }
+                /// Converting result of cString to String
+                let value = String(cString: result)
+                print("Successfully retrieved row.")
+                return value
+            } else {
+                print("No database connection")
+                return nil
+            }
+        } catch let error {
+            print("Error while retrieving row from Constant table")
+            print(error)
+            return nil
+        }
+    }
+    
+    func createConstant(for key: String, value: String) -> Bool {
+        
+        let insertStatement: String =
+        """
+        INSERT INTO Constant(key, value)
+        VALUES ('\(key)', '\(value)');
+        """
+        do {
+            if let database = database {
+                let insertSql = try database.prepareStatement(sql: insertStatement)
+                defer {
+                    database.finalize(insertSql)
+                }
+                /// Executing the query
+                guard database.step(insertSql) == SQLITE_DONE else {
+                    throw SQLiteError.stepError(message: database.errorMessage)
+                }
+                
+                print("Successfully inserted row in Constant table")
+                return true
+            } else {
+                print("No database connection")
+                return false
+            }
+        } catch SQLiteError.stepError(message: let error) {
+            print("Cannot create entry in Constant table")
+            print(error)
+            return false
+        } catch SQLiteError.preparationError(message: let error) {
+            print("Cannot create entry in Constant table")
+            print(error)
+            return false
+        } catch let error {
+            print("Cannot create entry in Constant table")
+            print(error)
+            return false
+        }
+    }
+    
+    func updateConstant(for key: String, value: String) -> Bool {
+        
+        guard getConstant(for: key) != nil else {
+            return createConstant(for: key, value: value)
+        }
+        
+        do {
+            
+            let updateStatement: String = """
+                UPDATE Constant SET value = '\(value)'
+                WHERE key = '\(key)';
+                """
             if let database = database {
                 let updateSql = try database.prepareStatement(sql: updateStatement)
                 defer {
-                    sqlite3_finalize(updateSql)
+                    database.finalize(updateSql)
                 }
-                guard sqlite3_step(updateSql) == SQLITE_DONE else {
-                    print("Failure in updating Reminder table")
+                guard database.step(updateSql) == SQLITE_DONE else {
+                    print("Failure in updating Constant table")
                     print(database.errorMessage)
                     return false
                 }
@@ -498,46 +1006,126 @@ class ReminderDatabase {
                 print("No database connection")
                 return false
             }
-            
         } catch let error {
-            print("Failed to update a row in Reminder table")
+            print("Failed to update a row in Constant table")
             print(error)
             return false
         }
     }
-    /// Deletes the data from the table present at the `id` passed in parameter
-    /// - Parameter id: The row id of the table
-    /// - Returns: A `Bool` representing the result of the operation
-    func delete(id: Int32) -> Bool {
+    
+    func getLastLoggedInUser() -> User? {
+        
+        guard let lastLoggedInUserEncodedString = getConstant(for: "lastLoggedInUser") else { return nil }
         do {
-            var deleteStatement: String {
-                """
-                DELETE FROM Reminder
-                WHERE id=\(id);
-                """
+            let user = try lastLoggedInUserEncodedString.data(using: .utf8)?.decode(User.self, format: .json)
+            return user
+        } catch let error {
+            print("Cannot decode User from database")
+            print(error)
+            return nil
+        }
+    }
+    
+    func setLastLoggedInUser(user: User) -> Bool {
+        
+        
+        do {
+            let lastLoggedInUserEncodedData = try user.encode(as: EncodingFormat.json)
+            guard let lastLoggedInUserEncodedString = String(data: lastLoggedInUserEncodedData, encoding: .utf8) else {
+                return false
             }
+            
+            return updateConstant(for: "lastLoggedInUser", value: lastLoggedInUserEncodedString)
+        } catch let error {
+            print("Cannot encode User while updating to database")
+            print(error)
+            return false
+        }
+    }
+    
+    func updateUserConstant(for username: String, key: String, value: String) -> Bool {
+        
+        do {
+            
+            let updateStatement: String = """
+                UPDATE UserConstant SET value = '\(value)'
+                WHERE key = '\(key)' AND username = '\(username)';
+                """
             if let database = database {
-                let deleteSql = try database.prepareStatement(sql: deleteStatement)
+                let updateSql = try database.prepareStatement(sql: updateStatement)
                 defer {
-                    sqlite3_finalize(deleteSql)
+                    database.finalize(updateSql)
                 }
-                guard sqlite3_step(deleteSql) == SQLITE_DONE else {
-                    print("Failure in deleting from Reminder table")
+                guard database.step(updateSql) == SQLITE_DONE else {
+                    print("Failure in updating UserConstant table")
                     print(database.errorMessage)
                     return false
                 }
-                print("Successfully deleted row.")
+                print("Successfully updated row.")
                 return true
             } else {
                 print("No database connection")
                 return false
             }
-            
         } catch let error {
-            print("Failed to delete a row in Reminder table")
+            print("Failed to update a row in UserConstant table")
             print(error)
             return false
         }
     }
+    
+    func createUserConstant(for username: String, key: String, value: String) -> Bool {
+        let insertStatement: String =
+        """
+        INSERT INTO UserConstant(username, key, value)
+        VALUES ('\(username)', '\(key)', '\(value)');
+        """
+        do {
+            if let database = database {
+                let insertSql = try database.prepareStatement(sql: insertStatement)
+                defer {
+                    database.finalize(insertSql)
+                }
+                /// Executing the query
+                guard database.step(insertSql) == SQLITE_DONE else {
+                    throw SQLiteError.stepError(message: database.errorMessage)
+                }
+                
+                print("Successfully inserted row in UserConstant table")
+                return true
+            } else {
+                print("No database connection")
+                return false
+            }
+        } catch SQLiteError.stepError(message: let error) {
+            print("Cannot create entry in UserConstant table")
+            print(error)
+            return false
+        } catch SQLiteError.preparationError(message: let error) {
+            print("Cannot create entry in UserConstant table")
+            print(error)
+            return false
+        } catch let error {
+            print("Cannot create entry in UserConstant table")
+            print(error)
+            return false
+        }
+    }
+    
+    private func createDefaultConstants(for username: String) {
+        
+        
+        let defaultConstants = [
+            "reminderTimeInterval": "3600",
+            "reminderTitle": "Untitled",
+            "reminderDescription": "Description",
+            "reminderRepeatPattern": "never",
+            "reminderRingTimeIntervals": "1800"
+        ]
+        for (key, value) in defaultConstants {
+            if createUserConstant(for: username, key: key, value: value) == false {
+                print("Unable to set constant \"\(key)\" for user \"\(username)\"")
+            }
+        }
+    }
 }
-
